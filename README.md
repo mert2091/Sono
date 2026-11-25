@@ -17,7 +17,32 @@
 
 ---
 
+<p align="center">
+  <img src="docs/screenshots/studio-dark.png" alt="Sono — Koyu Tema Stüdyo" width="100%" />
+</p>
+
 **Sono**, görsellerdeki, ekran görüntülerindeki ve ofis belgelerindeki (PDF, DOCX, PPTX, TXT) metinleri **Google Gemini API** ile okuyup çevirmenizi, özetlemenizi, belgeye soru sormanızı ve **Microsoft Edge-TTS** ile kelime takibi eşliğinde dinlemenizi sağlar.
+
+## Ekran Görüntüleri
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/screenshots/translate-light.png" alt="Açık Tema — Yan Yana Çeviri" /><br />
+      <sub><strong>Açık Tema &amp; Yan Yana Çeviri</strong> — Türkçe ↔ İngilizce canlı karşılaştırma</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/screenshots/tools-dark.png" alt="Akıllı Araçlar" /><br />
+      <sub><strong>Akıllı Araçlar</strong> — Ekran yakalama, toplu MP3 ve uyku zamanlayıcısı</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <img src="docs/screenshots/settings-dark.png" alt="Ayarlar ve Klavye Kısayolları" width="75%" /><br />
+      <sub><strong>Ayarlar &amp; Kısayollar</strong> — Özelleştirilebilir global kısayollar ve erişilebilirlik</sub>
+    </td>
+  </tr>
+</table>
 
 ## Özellikler
 
