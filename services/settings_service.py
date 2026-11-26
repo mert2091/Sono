@@ -110,6 +110,9 @@ class SettingsService:
 
     def save(self) -> None:
         try:
+            parent = os.path.dirname(self.path)
+            if parent:
+                os.makedirs(parent, exist_ok=True)
             with open(self.path, "w", encoding="utf-8") as f:
                 json.dump(self.data, f, ensure_ascii=False, indent=2)
         except Exception as e:

@@ -23,6 +23,9 @@ def init_db():
     with _init_lock:
         if _initialized:
             return
+        parent = os.path.dirname(DB_PATH)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
         conn = sqlite3.connect(DB_PATH)
         try:
             cursor = conn.cursor()
