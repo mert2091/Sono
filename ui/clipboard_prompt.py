@@ -15,11 +15,11 @@ from ui.animations import animate_window_slide_in
 from ui.icons import get_icon
 from ui.theme import (
     ACCENT_COLOR,
-    ACCENT_HOVER,
-    ACCENT_SOFT_TEXT,
-    ACCENT_TEXT,
     CARD_BG,
     CARD_BORDER,
+    PRIMARY_BTN_BG,
+    PRIMARY_BTN_HOVER,
+    PRIMARY_BTN_TEXT,
     SECONDARY_BTN,
     SECONDARY_BTN_BORDER,
     SECONDARY_BTN_HOVER,
@@ -64,38 +64,38 @@ class ClipboardPromptWindow(ctk.CTkToplevel):
 
         card = ctk.CTkFrame(
             self,
-            corner_radius=14,
+            corner_radius=12,
             fg_color=CARD_BG,
             border_width=1,
-            border_color=ACCENT_COLOR,
+            border_color=CARD_BORDER,
         )
         card.pack(fill="both", expand=True)
 
         hdr = ctk.CTkFrame(card, fg_color="transparent")
-        hdr.pack(fill="x", padx=14, pady=(12, 4))
+        hdr.pack(fill="x", padx=16, pady=(12, 4))
 
-        self._ic_wave = get_icon("audio-waveform", size=15, color=ACCENT_SOFT_TEXT)
-        self._ic_close = get_icon("x", size=13, color=TEXT_MUTED)
-        self._ic_speak = get_icon("volume-2", size=14, color=ACCENT_TEXT)
+        self._ic_wave = get_icon("audio-waveform", size=15, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_close = get_icon("x", size=13, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_speak = get_icon("volume-2", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
 
         ctk.CTkLabel(
             hdr,
             text=" Sono · Panoda yeni metin",
             image=self._ic_wave,
             compound="left",
-            font=ui_font(12, "bold"),
-            text_color=ACCENT_SOFT_TEXT,
+            font=ui_font(12, "semibold"),
+            text_color=TEXT_MAIN,
         ).pack(side="left")
 
         ctk.CTkButton(
             hdr,
             text="",
             image=self._ic_close,
-            width=26,
-            height=26,
+            width=24,
+            height=24,
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
-            corner_radius=7,
+            corner_radius=6,
             command=self._dismiss,
         ).pack(side="right")
 
@@ -111,10 +111,10 @@ class ClipboardPromptWindow(ctk.CTkToplevel):
             wraplength=346,
             justify="left",
             anchor="w",
-        ).pack(fill="x", padx=14, pady=(2, 10))
+        ).pack(fill="x", padx=16, pady=(4, 12))
 
         btn_row = ctk.CTkFrame(card, fg_color="transparent")
-        btn_row.pack(fill="x", padx=14, pady=(0, 10))
+        btn_row.pack(fill="x", padx=16, pady=(0, 12))
 
         ctk.CTkLabel(
             btn_row,
@@ -128,20 +128,20 @@ class ClipboardPromptWindow(ctk.CTkToplevel):
             text=" Sesli oku",
             image=self._ic_speak,
             compound="left",
-            width=102,
+            width=100,
             height=32,
-            font=ui_font(12, "bold"),
-            fg_color=ACCENT_COLOR,
-            text_color=ACCENT_TEXT,
-            hover_color=ACCENT_HOVER,
-            corner_radius=9,
+            font=ui_font(12, "semibold"),
+            fg_color=PRIMARY_BTN_BG,
+            text_color=PRIMARY_BTN_TEXT,
+            hover_color=PRIMARY_BTN_HOVER,
+            corner_radius=8,
             command=self._accept,
         ).pack(side="right")
 
         ctk.CTkButton(
             btn_row,
             text="Kapat",
-            width=66,
+            width=64,
             height=32,
             font=ui_font(12),
             fg_color=SECONDARY_BTN,
@@ -149,15 +149,15 @@ class ClipboardPromptWindow(ctk.CTkToplevel):
             border_color=SECONDARY_BTN_BORDER,
             text_color=TEXT_MAIN,
             hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=9,
+            corner_radius=8,
             command=self._dismiss,
-        ).pack(side="right", padx=(0, 6))
+        ).pack(side="right", padx=(0, 8))
 
         # Alt kenarda otomatik kapanma çizgisi
         self._timer_canvas = tk.Canvas(
-            card, height=3, bg=resolve_color(CARD_BORDER), highlightthickness=0, bd=0
+            card, height=2, bg=resolve_color(CARD_BORDER), highlightthickness=0, bd=0
         )
-        self._timer_canvas.pack(fill="x", padx=12, pady=(0, 6))
+        self._timer_canvas.pack(fill="x", padx=16, pady=(0, 8))
 
         animate_window_slide_in(self, width, height, x, y, offset_y=20, duration_ms=200)
 

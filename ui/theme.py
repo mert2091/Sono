@@ -1,9 +1,9 @@
 """
 Sono Tasarım Sistemi — Çift Temalı (Açık / Koyu) Renk, Tipografi ve Hareket Tokenları.
 
-İki özgün stüdyo teması:
-- Koyu Stüdyo ("Obsidian Console"): Derin arduvaz yüzeyler + Akustik Teal vurgu
-- Açık Stüdyo ("Atelier Paper"): Serin mimari kağıt yüzeyler + Derin Stüdyo Teal vurgu
+İki stüdyo teması:
+- Koyu ("Koyu · Grafit"): Nötr grafit yüzeyler + Sıcak Amber vurgu
+- Açık ("Açık · Kağıt"): Sıcak kağıt yüzeyler + Derin Amber vurgu
 
 Tüm renk tokenları CustomTkinter'ın yerel (light_hex, dark_hex) ikilileridir;
 raw tk.Canvas ve tk.Text bileşenleri için `resolve_color()` ve `register_theme_listener()`
@@ -72,9 +72,12 @@ def ui_font(size: int = 13, weight: str = "normal") -> ctk.CTkFont:
     return ctk.CTkFont(family=fam, size=size, weight=w)
 
 
-def display_font(size: int = 20, weight: str = "bold") -> ctk.CTkFont:
+def display_font(size: int = 20, weight: str = "semibold") -> ctk.CTkFont:
     _resolve_system_fonts()
-    return ctk.CTkFont(family=FONT_DISPLAY, size=size, weight=weight)
+    if weight == "semibold":
+        return ctk.CTkFont(family=FONT_FAMILY_SEMIBOLD, size=size, weight="normal")
+    w = "bold" if weight == "bold" else "normal"
+    return ctk.CTkFont(family=FONT_DISPLAY, size=size, weight=w)
 
 
 def mono_font(size: int = 12, weight: str = "normal") -> ctk.CTkFont:
@@ -86,100 +89,105 @@ def mono_font(size: int = 12, weight: str = "normal") -> ctk.CTkFont:
 # ÇİFT TEMALI RENK PALETİ — (LIGHT, DARK)
 # ============================================================
 
-# Kabuk ve Yüzey Katmanları
-RAIL_BG: ColorToken = ("#EAEFF5", "#0B0E13")
-RAIL_BORDER: ColorToken = ("#D7E0EB", "#1B222E")
-RAIL_ITEM_HOVER: ColorToken = ("#DDE5EF", "#161C27")
-RAIL_ITEM_ACTIVE: ColorToken = ("#FFFFFF", "#172329")
+# Kabuk ve Yüzey Katmanları (Açık · Kağıt / Koyu · Grafit)
+RAIL_BG: ColorToken = ("#EFECE6", "#0F0F10")
+RAIL_BORDER: ColorToken = ("#E2DDD4", "#242427")
+RAIL_ITEM_HOVER: ColorToken = ("#E6E1D8", "#1A1A1D")
+RAIL_ITEM_ACTIVE: ColorToken = ("#FDFBF7", "#222225")
 
-BG_COLOR: ColorToken = ("#F3F6FA", "#10141B")
-HEADER_BG: ColorToken = ("#F3F6FA", "#10141B")
-CARD_BG: ColorToken = ("#FFFFFF", "#161B24")
-CARD_BG_ELEVATED: ColorToken = ("#FFFFFF", "#1B222D")
-CARD_BORDER: ColorToken = ("#DCE3EC", "#232C3A")
-CARD_HOVER_BORDER: ColorToken = ("#BCC8D8", "#334155")
-INNER_BG: ColorToken = ("#F7F9FC", "#0E1219")
-DIVIDER_COLOR: ColorToken = ("#DFE6EF", "#1D2430")
+BG_COLOR: ColorToken = ("#F7F4EE", "#141415")
+HEADER_BG: ColorToken = ("#F7F4EE", "#141415")
+CARD_BG: ColorToken = ("#FDFBF7", "#19191B")
+CARD_BG_ELEVATED: ColorToken = ("#F4F0E8", "#202023")
+CARD_BORDER: ColorToken = ("#E5E0D7", "#27272A")
+CARD_HOVER_BORDER: ColorToken = ("#D2CBC0", "#38383D")
+INNER_BG: ColorToken = ("#F6F3EC", "#131315")
+DIVIDER_COLOR: ColorToken = ("#E5E0D7", "#242427")
+
+# Birincil Eylem Düğmesi (Koyu temada kırık beyaz, açık temada mürekkep)
+PRIMARY_BTN_BG: ColorToken = ("#1C1917", "#EDEDED")
+PRIMARY_BTN_TEXT: ColorToken = ("#FDFBF7", "#141415")
+PRIMARY_BTN_HOVER: ColorToken = ("#292524", "#FFFFFF")
 
 # İkincil Kontrol Yüzeyleri
-SECONDARY_BTN: ColorToken = ("#EEF2F7", "#1D2431")
-SECONDARY_BTN_BORDER: ColorToken = ("#CFD8E3", "#2D3648")
-SECONDARY_BTN_HOVER: ColorToken = ("#E2E8F0", "#263042")
+SECONDARY_BTN: ColorToken = ("#EFECE6", "#222225")
+SECONDARY_BTN_BORDER: ColorToken = ("#DCD6CC", "#2F2F34")
+SECONDARY_BTN_HOVER: ColorToken = ("#E5E0D7", "#2B2B30")
 
-DASHED_BORDER: ColorToken = ("#B4C2D4", "#334155")
+DASHED_BORDER: ColorToken = ("#CFC8BC", "#323238")
 
 # Metin Hiyerarşisi (WCAG AA/AAA >= 4.5:1)
-TEXT_MAIN: ColorToken = ("#0F172A", "#F1F5F9")
-TEXT_MUTED: ColorToken = ("#475569", "#94A3B8")
-TEXT_SUBTLE: ColorToken = ("#64748B", "#7B8BA3")
+TEXT_MAIN: ColorToken = ("#1C1917", "#EDEDED")
+TEXT_MUTED: ColorToken = ("#57534E", "#A1A1A6")
+TEXT_SUBTLE: ColorToken = ("#78716C", "#78787F")
 
-# Sono İmza Vurgu Rengi: Akustik Teal
-ACCENT_COLOR: ColorToken = ("#0F766E", "#2DD4BF")
-ACCENT_TEXT: ColorToken = ("#FFFFFF", "#042F2E")
-ACCENT_HOVER: ColorToken = ("#115E59", "#14B8A6")
-ACCENT_SOFT_BG: ColorToken = ("#E6F6F4", "#10282A")
-ACCENT_SOFT_BORDER: ColorToken = ("#9CDCD5", "#1F4B4F")
-ACCENT_SOFT_TEXT: ColorToken = ("#0F766E", "#5EEAD4")
-ACCENT_GLOW: ColorToken = ("#14B8A6", "#5EEAD4")
+# Sono İmza Vurgu Rengi: Sıcak Stüdyo Amber
+ACCENT_COLOR: ColorToken = ("#B45309", "#E59A3C")
+ACCENT_TEXT: ColorToken = ("#FFFFFF", "#141415")
+ACCENT_HOVER: ColorToken = ("#92400E", "#F0AA4E")
+ACCENT_SOFT_BG: ColorToken = ("#F5ECE0", "#261F17")
+ACCENT_SOFT_BORDER: ColorToken = ("#E6D1B8", "#3D3020")
+ACCENT_SOFT_TEXT: ColorToken = ("#9A470A", "#E59A3C")
+ACCENT_GLOW: ColorToken = ("#D97706", "#F2B866")
 
 # Durum ve Bildirim Renkleri
-SUCCESS_COLOR: ColorToken = ("#047857", "#34D399")
-STATUS_PILL_BG: ColorToken = ("#ECFDF5", "#0E241E")
-STATUS_PILL_BORDER: ColorToken = ("#A7F3D0", "#1B4739")
-STATUS_PILL_HOVER: ColorToken = ("#D1FAE5", "#14332A")
+SUCCESS_COLOR: ColorToken = ("#15803D", "#4CC38A")
+STATUS_PILL_BG: ColorToken = SECONDARY_BTN
+STATUS_PILL_BORDER: ColorToken = CARD_BORDER
+STATUS_PILL_HOVER: ColorToken = SECONDARY_BTN_HOVER
 
-WARN_COLOR: ColorToken = ("#B45309", "#FBBF24")
-WARN_BG: ColorToken = ("#FFFBEB", "#29200F")
-WARN_BORDER: ColorToken = ("#FDE68A", "#523E19")
+WARN_COLOR: ColorToken = ("#B45309", "#E5A03C")
+WARN_BG: ColorToken = ("#FBF4E8", "#262015")
+WARN_BORDER: ColorToken = ("#EBD5B3", "#403420")
 
-# Durdur / Tehlike Düğmesi (Signal Coral)
-STOP_BTN_TEXT: ColorToken = ("#BE123C", "#FB7185")
-STOP_BTN_BG: ColorToken = ("#FFF1F2", "#2B141B")
-STOP_BTN_BORDER: ColorToken = ("#FECDD3", "#522230")
-STOP_BTN_HOVER: ColorToken = ("#FFE4E6", "#3B1B24")
+# Durdur / Tehlike Düğmesi
+STOP_BTN_TEXT: ColorToken = ("#B91C1C", "#E5484D")
+STOP_BTN_BG: ColorToken = ("#FDF2F2", "#261719")
+STOP_BTN_BORDER: ColorToken = ("#F2D2D2", "#422226")
+STOP_BTN_HOVER: ColorToken = ("#F9E2E2", "#331D20")
 
-# Navigasyon & AI Düğme Uyumluluk Tokenları
-NAV_PILL_BG: ColorToken = ("#FFFFFF", "#161B24")
-NAV_PILL_ACTIVE_BG: ColorToken = ("#E6F6F4", "#11282A")
-NAV_PILL_ACTIVE_BORDER: ColorToken = ("#0F766E", "#2DD4BF")
-NAV_TEXT_IDLE: ColorToken = ("#475569", "#94A3B8")
+# Navigasyon & Araç Düğme Uyumluluk Tokenları
+NAV_PILL_BG: ColorToken = CARD_BG
+NAV_PILL_ACTIVE_BG: ColorToken = RAIL_ITEM_ACTIVE
+NAV_PILL_ACTIVE_BORDER: ColorToken = CARD_BORDER
+NAV_TEXT_IDLE: ColorToken = TEXT_MUTED
 
-AI_BTN_BG: ColorToken = ACCENT_SOFT_BG
-AI_BTN_BORDER: ColorToken = ACCENT_SOFT_BORDER
-AI_BTN_TEXT: ColorToken = ACCENT_SOFT_TEXT
-AI_BTN_HOVER: ColorToken = ("#D4F0EC", "#163538")
+AI_BTN_BG: ColorToken = SECONDARY_BTN
+AI_BTN_BORDER: ColorToken = SECONDARY_BTN_BORDER
+AI_BTN_TEXT: ColorToken = TEXT_MAIN
+AI_BTN_HOVER: ColorToken = SECONDARY_BTN_HOVER
 
 # Alt Stüdyo Oynatıcı & Akustik Dalga Formu
-PLAYER_BG: ColorToken = ("#FFFFFF", "#141922")
-PLAYER_BORDER: ColorToken = ("#D3DCE8", "#242D3D")
-WAVE_IDLE: ColorToken = ("#CBD5E1", "#263142")
-WAVE_ACTIVE: ColorToken = ("#0D9488", "#2DD4BF")
-WAVE_PEAK: ColorToken = ("#0F766E", "#99F6E4")
-SLIDER_TRACK: ColorToken = ("#DCE3EC", "#263042")
+PLAYER_BG: ColorToken = ("#FDFBF7", "#19191B")
+PLAYER_BORDER: ColorToken = ("#E5E0D7", "#27272A")
+WAVE_IDLE: ColorToken = ("#D6D0C4", "#2E2E32")
+WAVE_ACTIVE: ColorToken = ("#B45309", "#E59A3C")
+WAVE_PEAK: ColorToken = ("#92400E", "#F5C47C")
+SLIDER_TRACK: ColorToken = ("#E2DDD4", "#2B2B30")
 
-# Monkeytype 3-Katmanlı Okuma Vurgusu
-HL_DONE_FG: ColorToken = ("#0F172A", "#F1F5F9")
-HL_ACTIVE_BG: ColorToken = ("#CCFBF1", "#134E4A")
-HL_ACTIVE_FG: ColorToken = ("#115E59", "#F0FDFA")
-HL_UNREAD_FG: ColorToken = ("#94A3B8", "#64748B")
+# 3-Katmanlı Okuma Vurgusu
+HL_DONE_FG: ColorToken = ("#1C1917", "#EDEDED")
+HL_ACTIVE_BG: ColorToken = ("#F4E3C9", "#332615")
+HL_ACTIVE_FG: ColorToken = ("#78350F", "#FCE7C8")
+HL_UNREAD_FG: ColorToken = ("#A8A29E", "#6B6B72")
 
 # Ayarlar Yan Menü Aktif Yüzeyi
-ISLAND_ACTIVE_BG: ColorToken = ("#E6F6F4", "#13292C")
+ISLAND_ACTIVE_BG: ColorToken = ("#EFECE6", "#222225")
 
 # ============================================================
-# ÖLÇÜLER (GEOMETRY & 4/8px SPACING RHYTHM)
+# ÖLÇÜLER (GEOMETRY & 4px SPACING RHYTHM)
 # ============================================================
-RADIUS_CARD = 16
-RADIUS_INNER = 12
-RADIUS_BTN = 10
-RADIUS_PILL = 16
+RADIUS_CARD = 12
+RADIUS_INNER = 8
+RADIUS_BTN = 8
+RADIUS_PILL = 8
 
-BTN_HEIGHT_MAIN = 44
+BTN_HEIGHT_MAIN = 40
 BTN_HEIGHT_SM = 32
 
 SPACING_CARD = 16
-PADDING_CARD = 18
-RAIL_WIDTH = 78
+PADDING_CARD = 16
+RAIL_WIDTH = 72
 
 
 # ============================================================

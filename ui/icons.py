@@ -436,7 +436,7 @@ def get_icon(
     name: str,
     size: int = 16,
     color: ColorToken = TEXT_MAIN,
-    stroke_width: float = 1.9,
+    stroke_width: float = 1.5,
     filled: bool = False,
 ) -> ctk.CTkImage:
     """

@@ -63,6 +63,9 @@ from ui.theme import (
     HEADER_BG,
     INNER_BG,
     PADDING_CARD,
+    PRIMARY_BTN_BG,
+    PRIMARY_BTN_HOVER,
+    PRIMARY_BTN_TEXT,
     RADIUS_BTN,
     RADIUS_CARD,
     RADIUS_INNER,
@@ -122,10 +125,10 @@ class App(_AppBase):
     """Sono — Çift Temalı Yapay Zeka Belge ve Ses Stüdyosu."""
 
     VIEW_META = {
-        "home": ("Stüdyo", "Belgeyi yükle, çevir, özetle ve doğal sesle dinle."),
-        "library": ("Kitaplık", "Daha önce okuttuğun ve çevirdiğin belgeler cihazında saklanır."),
-        "tools": ("Akıllı Araçlar", "Ekran yakalama, toplu seslendirme ve uyku zamanlayıcısı."),
-        "settings": ("Ayarlar", "Tema, kısayollar, yapay zeka anahtarı ve güncellemeler."),
+        "home": ("Stüdyo", "Belgeyi yükle, çevir ve sesli dinle"),
+        "library": ("Kitaplık", "Kaydedilen belgeler cihazında saklanır"),
+        "tools": ("Araçlar", "Ekran yakalama, toplu seslendirme ve zamanlayıcı"),
+        "settings": ("Ayarlar", "Görünüm, kısayollar, API anahtarı ve güncellemeler"),
     }
 
     def __init__(self):
@@ -189,20 +192,16 @@ class App(_AppBase):
         if not hasattr(self, "api_badge_frame"):
             return
 
+        self.api_badge_frame.configure(fg_color="transparent", border_width=0)
+        self.gemini_dot.set_bg_token(HEADER_BG)
         if busy:
-            self.api_badge_frame.configure(fg_color=ACCENT_SOFT_BG, border_color=ACCENT_SOFT_BORDER)
             self.api_badge_lbl.configure(text="Gemini çalışıyor…", text_color=ACCENT_SOFT_TEXT)
-            self.gemini_dot.set_bg_token(ACCENT_SOFT_BG)
             self.gemini_dot.set_mode("busy")
         elif is_ready:
-            self.api_badge_frame.configure(fg_color=STATUS_PILL_BG, border_color=STATUS_PILL_BORDER)
-            self.api_badge_lbl.configure(text="Gemini hazır", text_color=SUCCESS_COLOR)
-            self.gemini_dot.set_bg_token(STATUS_PILL_BG)
+            self.api_badge_lbl.configure(text="Gemini hazır", text_color=TEXT_MUTED)
             self.gemini_dot.set_mode("ready")
         else:
-            self.api_badge_frame.configure(fg_color=STOP_BTN_BG, border_color=STOP_BTN_BORDER)
             self.api_badge_lbl.configure(text="API anahtarı gerekli", text_color=STOP_BTN_TEXT)
-            self.gemini_dot.set_bg_token(STOP_BTN_BG)
             self.gemini_dot.set_mode("error")
 
     def _prompt_missing_api_key(self) -> None:
@@ -234,29 +233,29 @@ class App(_AppBase):
             try:
                 pil_logo = Image.open(logo_path).convert("RGBA")
                 self._header_logo_img = ctk.CTkImage(
-                    light_image=pil_logo, dark_image=pil_logo, size=(34, 34)
+                    light_image=pil_logo, dark_image=pil_logo, size=(30, 30)
                 )
             except Exception:
                 self._header_logo_img = None
 
         self._ic_rail = {
-            "home_idle": get_icon("audio-waveform", size=20, color=TEXT_MUTED),
-            "home_act": get_icon("audio-waveform", size=20, color=ACCENT_COLOR, stroke_width=2.1),
-            "library_idle": get_icon("book-open", size=20, color=TEXT_MUTED),
-            "library_act": get_icon("book-open", size=20, color=ACCENT_COLOR, stroke_width=2.1),
-            "tools_idle": get_icon("sparkles", size=20, color=TEXT_MUTED),
-            "tools_act": get_icon("sparkles", size=20, color=ACCENT_COLOR, stroke_width=2.1),
-            "settings_idle": get_icon("sliders-horizontal", size=20, color=TEXT_MUTED),
-            "settings_act": get_icon("sliders-horizontal", size=20, color=ACCENT_COLOR, stroke_width=2.1),
-            "sun": get_icon("sun", size=18, color=TEXT_MAIN),
-            "moon": get_icon("moon", size=18, color=TEXT_MAIN),
+            "home_idle": get_icon("audio-waveform", size=18, color=TEXT_MUTED, stroke_width=1.5),
+            "home_act": get_icon("audio-waveform", size=18, color=TEXT_MAIN, stroke_width=1.8),
+            "library_idle": get_icon("book-open", size=18, color=TEXT_MUTED, stroke_width=1.5),
+            "library_act": get_icon("book-open", size=18, color=TEXT_MAIN, stroke_width=1.8),
+            "tools_idle": get_icon("layers", size=18, color=TEXT_MUTED, stroke_width=1.5),
+            "tools_act": get_icon("layers", size=18, color=TEXT_MAIN, stroke_width=1.8),
+            "settings_idle": get_icon("sliders-horizontal", size=18, color=TEXT_MUTED, stroke_width=1.5),
+            "settings_act": get_icon("sliders-horizontal", size=18, color=TEXT_MAIN, stroke_width=1.8),
+            "sun": get_icon("sun", size=18, color=TEXT_MUTED, stroke_width=1.5),
+            "moon": get_icon("moon", size=18, color=TEXT_MUTED, stroke_width=1.5),
         }
-        self._ic_scan = get_icon("scan", size=15, color=TEXT_MAIN)
-        self._ic_search = get_icon("search", size=15, color=TEXT_MUTED)
-        self._ic_trash_err = get_icon("trash", size=14, color=STOP_BTN_TEXT)
-        self._ic_arrow_r = get_icon("arrow-right", size=14, color=ACCENT_TEXT)
-        self._ic_close_sm = get_icon("x", size=14, color=TEXT_MUTED)
-        self._ic_empty_lib = get_icon("book-open", size=28, color=ACCENT_SOFT_TEXT, stroke_width=1.7)
+        self._ic_scan = get_icon("scan", size=15, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_search = get_icon("search", size=15, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_trash_err = get_icon("trash", size=14, color=STOP_BTN_TEXT, stroke_width=1.5)
+        self._ic_arrow_r = get_icon("arrow-right", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
+        self._ic_close_sm = get_icon("x", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_empty_lib = get_icon("book-open", size=24, color=TEXT_MUTED, stroke_width=1.5)
 
     # ── Ana Kabuk Kurulumu (Sol Stüdyo Rayı + Sağ Çalışma Alanı) ──
 
@@ -277,35 +276,35 @@ class App(_AppBase):
 
         # Üst: Sono Amblemi
         brand_wrap = ctk.CTkFrame(rail, fg_color="transparent")
-        brand_wrap.grid(row=0, column=0, pady=(16, 18))
+        brand_wrap.grid(row=0, column=0, pady=(16, 16))
 
         logo_btn = ctk.CTkButton(
             brand_wrap,
             text="" if self._header_logo_img else "S",
             image=self._header_logo_img,
-            width=44,
-            height=44,
-            font=display_font(18, "bold"),
+            width=40,
+            height=40,
+            font=display_font(16, "semibold"),
             fg_color=CARD_BG,
             border_width=1,
             border_color=CARD_BORDER,
             hover_color=RAIL_ITEM_HOVER,
-            text_color=ACCENT_COLOR,
-            corner_radius=13,
+            text_color=TEXT_MAIN,
+            corner_radius=10,
             command=lambda: self._switch_view("home"),
         )
         logo_btn.pack()
 
         ctk.CTkLabel(
             brand_wrap,
-            text="SONO",
-            font=mono_font(10, "bold"),
+            text="Sono",
+            font=ui_font(11, "semibold"),
             text_color=TEXT_SUBTLE,
-        ).pack(pady=(5, 0))
+        ).pack(pady=(4, 0))
 
         # Orta: Dikey Navigasyon Öğeleri
         nav_stack = ctk.CTkFrame(rail, fg_color="transparent")
-        nav_stack.grid(row=1, column=0, sticky="ew", padx=6)
+        nav_stack.grid(row=1, column=0, sticky="ew", padx=8)
 
         nav_defs = [
             ("home", "Stüdyo"),
@@ -326,15 +325,14 @@ class App(_AppBase):
             text="Açık" if is_dark else "Koyu",
             image=self._ic_rail["sun"] if is_dark else self._ic_rail["moon"],
             compound="top",
-            width=58,
-            height=54,
+            width=52,
+            height=48,
             font=ui_font(10, "semibold"),
-            fg_color=CARD_BG,
-            border_width=1,
-            border_color=CARD_BORDER,
+            fg_color="transparent",
+            border_width=0,
             hover_color=RAIL_ITEM_HOVER,
             text_color=TEXT_MUTED,
-            corner_radius=12,
+            corner_radius=8,
             command=self._toggle_theme,
         )
         self.theme_btn.pack(fill="x")
@@ -353,7 +351,7 @@ class App(_AppBase):
 
         # İnce Entegre Üst Başlık Çubuğu
         header = ctk.CTkFrame(main_col, fg_color=HEADER_BG, corner_radius=0)
-        header.grid(row=0, column=0, sticky="ew", padx=22, pady=(14, 12))
+        header.grid(row=0, column=0, sticky="ew", padx=24, pady=(16, 12))
         header.grid_columnconfigure(0, weight=1)
 
         title_stack = ctk.CTkFrame(header, fg_color="transparent")
@@ -362,7 +360,7 @@ class App(_AppBase):
         self.view_title_lbl = ctk.CTkLabel(
             title_stack,
             text="Stüdyo",
-            font=display_font(20, "bold"),
+            font=display_font(20, "semibold"),
             text_color=TEXT_MAIN,
         )
         self.view_title_lbl.pack(anchor="w")
@@ -375,7 +373,7 @@ class App(_AppBase):
         )
         self.view_sub_lbl.pack(anchor="w")
 
-        # Sağ Üst Aksiyonlar: Hızlı Ekran Yakala + Canlı Gemini Durumu
+        # Sağ Üst Aksiyonlar: Hızlı Ekran Yakala + Sessiz Gemini Durumu
         right_hdr = ctk.CTkFrame(header, fg_color="transparent")
         right_hdr.grid(row=0, column=1, sticky="e")
 
@@ -384,26 +382,25 @@ class App(_AppBase):
             text=" Ekran yakala",
             image=self._ic_scan,
             compound="left",
-            height=34,
+            height=32,
             font=ui_font(12, "semibold"),
-            fg_color=CARD_BG,
+            fg_color=SECONDARY_BTN,
             border_width=1,
-            border_color=CARD_BORDER,
+            border_color=SECONDARY_BTN_BORDER,
             hover_color=SECONDARY_BTN_HOVER,
             text_color=TEXT_MAIN,
-            corner_radius=10,
+            corner_radius=8,
             command=self._start_screen_capture,
         )
-        self.quick_capture_btn.pack(side="left", padx=(0, 10))
+        self.quick_capture_btn.pack(side="left", padx=(0, 12))
 
-        # Canlı nabız noktalı tıklanabilir Gemini durum kapsülü
+        # Sessiz noktalı tıklanabilir Gemini durum göstergesi
         self.api_badge_frame = ctk.CTkFrame(
             right_hdr,
-            height=34,
-            fg_color=STATUS_PILL_BG,
-            border_width=1,
-            border_color=STATUS_PILL_BORDER,
-            corner_radius=17,
+            height=32,
+            fg_color="transparent",
+            border_width=0,
+            corner_radius=8,
             cursor="hand2",
         )
         self.api_badge_frame.pack(side="left")
@@ -411,20 +408,20 @@ class App(_AppBase):
 
         self.gemini_dot = LivePulseDot(
             self.api_badge_frame,
-            size=16,
-            bg_token=STATUS_PILL_BG,
+            size=14,
+            bg_token=HEADER_BG,
             on_click=lambda: self._switch_view("settings", settings_tab="ai"),
         )
-        self.gemini_dot.grid(row=0, column=0, padx=(11, 5), pady=8)
+        self.gemini_dot.grid(row=0, column=0, padx=(8, 4), pady=8)
 
         self.api_badge_lbl = ctk.CTkLabel(
             self.api_badge_frame,
             text="Gemini hazır",
-            font=ui_font(12, "semibold"),
-            text_color=SUCCESS_COLOR,
+            font=ui_font(12),
+            text_color=TEXT_MUTED,
             cursor="hand2",
         )
-        self.api_badge_lbl.grid(row=0, column=1, padx=(0, 13), pady=6)
+        self.api_badge_lbl.grid(row=0, column=1, padx=(0, 8), pady=6)
 
         for w in (self.api_badge_frame, self.api_badge_lbl):
             w.bind("<Button-1>", lambda _e: self._switch_view("settings", settings_tab="ai"))
@@ -435,7 +432,7 @@ class App(_AppBase):
 
         # Aktif Görünüm Sahnesi
         self.stage = ctk.CTkFrame(main_col, fg_color="transparent")
-        self.stage.grid(row=2, column=0, sticky="nsew", padx=20, pady=16)
+        self.stage.grid(row=2, column=0, sticky="nsew", padx=24, pady=16)
         self.stage.grid_rowconfigure(0, weight=1)
         self.stage.grid_columnconfigure(0, weight=1)
 
@@ -451,21 +448,21 @@ class App(_AppBase):
         row.pack(fill="x", pady=4)
         row.grid_columnconfigure(1, weight=1)
 
-        indicator = ctk.CTkFrame(row, width=3, height=24, corner_radius=2, fg_color="transparent")
-        indicator.grid(row=0, column=0, padx=(0, 3), sticky="w")
+        indicator = ctk.CTkFrame(row, width=3, height=20, corner_radius=2, fg_color="transparent")
+        indicator.grid(row=0, column=0, padx=(0, 4), sticky="w")
 
         btn = ctk.CTkButton(
             row,
             text=label,
             image=self._ic_rail[f"{key}_idle"],
             compound="top",
-            width=58,
-            height=54,
+            width=52,
+            height=48,
             font=ui_font(10, "semibold"),
             fg_color="transparent",
             hover_color=RAIL_ITEM_HOVER,
             text_color=TEXT_MUTED,
-            corner_radius=12,
+            corner_radius=8,
             command=lambda k=key: self._switch_view(k),
         )
         btn.grid(row=0, column=1, sticky="ew")
@@ -527,35 +524,35 @@ class App(_AppBase):
         view.grid_columnconfigure(0, weight=1)
 
         top = ctk.CTkFrame(view, fg_color="transparent")
-        top.grid(row=0, column=0, sticky="ew", pady=(0, 14))
+        top.grid(row=0, column=0, sticky="ew", pady=(0, 12))
         top.grid_columnconfigure(0, weight=1)
 
-        # Arama kutusu + ikon kapsülü
+        # Arama kutusu
         search_box = ctk.CTkFrame(
             top,
             fg_color=CARD_BG,
             border_width=1,
             border_color=CARD_BORDER,
             corner_radius=RADIUS_BTN,
-            height=38,
+            height=36,
         )
         search_box.grid(row=0, column=0, sticky="w")
 
         ctk.CTkLabel(search_box, text="", image=self._ic_search, width=20).pack(
-            side="left", padx=(10, 4), pady=6
+            side="left", padx=(12, 4), pady=6
         )
         self.lib_search_entry = ctk.CTkEntry(
             search_box,
-            placeholder_text="Başlık veya metin içinde ara…",
+            placeholder_text="Ara",
             width=260,
-            height=34,
+            height=32,
             font=ui_font(12),
             fg_color="transparent",
             border_width=0,
             text_color=TEXT_MAIN,
             placeholder_text_color=TEXT_MUTED,
         )
-        self.lib_search_entry.pack(side="left", padx=(0, 10), pady=2)
+        self.lib_search_entry.pack(side="left", padx=(0, 12), pady=2)
         self.lib_search_entry.bind("<KeyRelease>", self._schedule_library_refresh)
 
         right_hdr = ctk.CTkFrame(top, fg_color="transparent")
@@ -564,21 +561,20 @@ class App(_AppBase):
         self.lib_count_lbl = ctk.CTkLabel(
             right_hdr,
             text="0 kayıt",
-            font=mono_font(11, "bold"),
+            font=mono_font(11),
             text_color=TEXT_MUTED,
-            fg_color=SECONDARY_BTN,
-            corner_radius=8,
-            padx=10,
-            pady=5,
+            fg_color="transparent",
+            padx=4,
+            pady=4,
         )
-        self.lib_count_lbl.pack(side="left", padx=(0, 10))
+        self.lib_count_lbl.pack(side="left", padx=(0, 12))
 
         clear_btn = ctk.CTkButton(
             right_hdr,
             text=" Geçmişi temizle",
             image=self._ic_trash_err,
             compound="left",
-            height=36,
+            height=32,
             font=ui_font(12, "semibold"),
             fg_color=STOP_BTN_BG,
             border_width=1,
@@ -634,25 +630,22 @@ class App(_AppBase):
 
         if not items:
             empty_box = ctk.CTkFrame(self.lib_scroll, fg_color="transparent")
-            empty_box.pack(pady=70)
+            empty_box.pack(pady=72)
             ctk.CTkLabel(
                 empty_box,
                 text="",
                 image=self._ic_empty_lib,
-                width=58,
-                height=58,
-                corner_radius=16,
-                fg_color=ACCENT_SOFT_BG,
-            ).pack(pady=(0, 14))
+                fg_color="transparent",
+            ).pack(pady=(0, 12))
             ctk.CTkLabel(
                 empty_box,
                 text="Henüz kayıtlı belge yok" if not query else "Aramayla eşleşen belge bulunamadı",
-                font=ui_font(15, "bold"),
+                font=ui_font(14, "semibold"),
                 text_color=TEXT_MAIN,
             ).pack(pady=(0, 4))
             ctk.CTkLabel(
                 empty_box,
-                text="Stüdyo ekranında okuttuğun belgeler burada otomatik arşivlenir.",
+                text="Stüdyo ekranında okuttuğun belgeler burada arşivlenir",
                 font=ui_font(12),
                 text_color=TEXT_MUTED,
             ).pack()
@@ -666,29 +659,29 @@ class App(_AppBase):
                 border_width=1,
                 border_color=CARD_BORDER,
             )
-            card.pack(fill="x", padx=8, pady=5)
+            card.pack(fill="x", padx=8, pady=4)
             card.grid_columnconfigure(1, weight=1)
 
             badge_text = (item.get("source_type") or "BELGE").upper()[:6]
             ctk.CTkLabel(
                 card,
                 text=badge_text,
-                width=58,
-                height=38,
-                corner_radius=10,
-                fg_color=ACCENT_SOFT_BG,
-                text_color=ACCENT_SOFT_TEXT,
+                width=56,
+                height=32,
+                corner_radius=8,
+                fg_color=SECONDARY_BTN,
+                text_color=TEXT_MUTED,
                 font=mono_font(10, "bold"),
-            ).grid(row=0, column=0, rowspan=3, padx=(14, 14), pady=12)
+            ).grid(row=0, column=0, rowspan=3, padx=(16, 12), pady=12)
 
             raw_title = (item.get("title") or "Belge Metni").lstrip("📄📑📋🖼️ ").strip() or "Belge Metni"
             ctk.CTkLabel(
                 card,
                 text=raw_title,
-                font=ui_font(14, "bold"),
+                font=ui_font(14, "semibold"),
                 text_color=TEXT_MAIN,
                 anchor="w",
-            ).grid(row=0, column=1, sticky="w", pady=(10, 2))
+            ).grid(row=0, column=1, sticky="w", pady=(12, 2))
 
             last_p = int(item.get("last_paragraph") or 0)
             tot_p = int(item.get("total_paragraphs") or 0)
@@ -701,7 +694,7 @@ class App(_AppBase):
                 font=mono_font(11),
                 text_color=ACCENT_SOFT_TEXT if has_resume else TEXT_MUTED,
                 anchor="w",
-            ).grid(row=1, column=1, sticky="w", pady=(0, 6 if has_resume else 10))
+            ).grid(row=1, column=1, sticky="w", pady=(0, 8 if has_resume else 12))
 
             if has_resume:
                 pbar = ctk.CTkProgressBar(
@@ -713,37 +706,37 @@ class App(_AppBase):
                     corner_radius=2,
                 )
                 pbar.set(min(1.0, (last_p + 1) / max(1, tot_p)))
-                pbar.grid(row=2, column=1, sticky="w", pady=(0, 10))
+                pbar.grid(row=2, column=1, sticky="w", pady=(0, 12))
 
             btn_row = ctk.CTkFrame(card, fg_color="transparent")
-            btn_row.grid(row=0, column=2, rowspan=3, padx=14, pady=10)
+            btn_row.grid(row=0, column=2, rowspan=3, padx=16, pady=12)
 
             ctk.CTkButton(
                 btn_row,
                 text="Devam et " if has_resume else "Aç ",
                 image=self._ic_arrow_r,
                 compound="right",
-                width=98 if has_resume else 76,
-                height=34,
-                font=ui_font(12, "bold"),
-                fg_color=ACCENT_COLOR,
-                text_color=ACCENT_TEXT,
-                hover_color=ACCENT_HOVER,
-                corner_radius=9,
+                width=96 if has_resume else 72,
+                height=32,
+                font=ui_font(12, "semibold"),
+                fg_color=PRIMARY_BTN_BG,
+                text_color=PRIMARY_BTN_TEXT,
+                hover_color=PRIMARY_BTN_HOVER,
+                corner_radius=8,
                 command=lambda i=item: self._load_from_history(i),
-            ).pack(side="left", padx=(0, 6))
+            ).pack(side="left", padx=(0, 8))
 
             ctk.CTkButton(
                 btn_row,
                 text="",
                 image=self._ic_close_sm,
-                width=34,
-                height=34,
+                width=32,
+                height=32,
                 fg_color=SECONDARY_BTN,
                 border_width=1,
                 border_color=SECONDARY_BTN_BORDER,
                 hover_color=STOP_BTN_HOVER,
-                corner_radius=9,
+                corner_radius=8,
                 command=lambda i_id=item["id"]: self._delete_library_item(i_id),
             ).pack(side="left")
 
@@ -755,158 +748,149 @@ class App(_AppBase):
         clear_all_history()
         self._refresh_library()
 
-    # ── Görünüm 3: Akıllı Araçlar ────────────────────────────────
+    # ── Görünüm 3: Araçlar ────────────────────────────────────────
 
     def _build_tools_view(self) -> None:
         view = ctk.CTkFrame(self.stage, fg_color="transparent")
-        view.grid_columnconfigure((0, 1), weight=1, uniform="tools")
+        view.grid_columnconfigure(0, weight=1)
 
-        self._make_tool_card(
+        container = ctk.CTkFrame(
             view,
-            0,
-            0,
+            corner_radius=RADIUS_CARD,
+            fg_color=CARD_BG,
+            border_width=1,
+            border_color=CARD_BORDER,
+        )
+        container.grid(row=0, column=0, sticky="ew")
+        container.grid_columnconfigure(0, weight=1)
+
+        self._make_tool_row(
+            container,
+            row_idx=0,
             icon_name="scan",
             title="Ekran bölgesi yakala ve oku",
-            desc="Ekranı karartıp fareyle seçtiğin alanı anında Gemini ile çözümler ve seslendirmeye başlar.",
-            status_text="Aktif · Global kısayol destekli",
+            desc="Ekranı karartıp seçtiğin alanı metne çevirir ve seslendirir",
+            status_text="Aktif · Global kısayol",
             buttons=[("Şimdi yakala", self._start_screen_capture, True)],
         )
 
-        self._batch_status_lbl = self._make_tool_card(
-            view,
-            0,
-            1,
+        self._batch_status_lbl = self._make_tool_row(
+            container,
+            row_idx=1,
             icon_name="layers",
-            title="Toplu işleme & MP3 birleştirme",
-            desc="Birden fazla PDF, DOCX, PPTX veya görseli sırayla okut ya da tek bir MP3 sesli kitapta birleştir.",
-            status_text="Aktif · Çoklu dosya destekli",
+            title="Toplu işleme ve MP3 birleştirme",
+            desc="Birden fazla PDF, DOCX, PPTX veya görseli sırayla okut ya da tek MP3 yap",
+            status_text="Aktif · Çoklu dosya",
             buttons=[
                 ("Tek MP3 yap", self._start_batch_mp3, False),
-                ("Sırayla oku", self._start_batch_read, True),
+                ("Sırayla oku", self._start_batch_read, False),
             ],
         )
 
-        self._sleep_status_lbl = self._make_tool_card(
-            view,
-            1,
-            0,
+        self._sleep_status_lbl = self._make_tool_row(
+            container,
+            row_idx=2,
             icon_name="moon-star",
             title="Uyku zamanlayıcısı",
-            desc="Sesli okuma başladıktan sonra belirlediğin süre dolduğunda oynatıcıyı yumuşakça durdurur.",
+            desc="Belirlediğin süre dolduğunda sesli okumayı durdurur",
             status_text="Kapalı",
             buttons=[
                 ("İptal", self._cancel_sleep_timer, False),
                 ("60 dk", lambda: self._start_sleep_timer(60), False),
                 ("30 dk", lambda: self._start_sleep_timer(30), False),
                 ("15 dk", lambda: self._start_sleep_timer(15), False),
-                ("1 dk", lambda: self._start_sleep_timer(1), True),
+                ("1 dk", lambda: self._start_sleep_timer(1), False),
             ],
         )
 
-        self._make_tool_card(
-            view,
-            1,
-            1,
+        self._make_tool_row(
+            container,
+            row_idx=3,
             icon_name="clipboard-check",
-            title="Pano izleme & Sistem tepsisi",
-            desc="Kopyaladığın metinlerde 'Okuyayım mı?' bildirimi sunar; pencere kapanınca arka planda hazır bekler.",
-            status_text="Aktif · Ayarlar'dan yönetilir",
+            title="Pano izleme ve sistem tepsisi",
+            desc="Kopyalanan metinlerde okuma bildirimi sunar, pencere kapanınca tepside bekler",
+            status_text="Aktif · Ayarlardan yönetilir",
             buttons=[("Tepsiye küçült", self._minimize_to_tray_now, False)],
         )
 
         self._views["tools"] = view
 
-    def _make_tool_card(
+    def _make_tool_row(
         self,
         parent,
-        row: int,
-        col: int,
+        row_idx: int,
         icon_name: str,
         title: str,
         desc: str,
         status_text: str,
         buttons: list[tuple[str, callable, bool]],
     ) -> ctk.CTkLabel:
-        card = ctk.CTkFrame(
-            parent,
-            corner_radius=RADIUS_CARD,
-            fg_color=CARD_BG,
-            border_width=1,
-            border_color=CARD_BORDER,
-        )
-        card.grid(
-            row=row,
-            column=col,
-            sticky="nsew",
-            padx=(0, 8) if col == 0 else (8, 0),
-            pady=(0, 16),
-        )
+        if row_idx > 0:
+            sep = ctk.CTkFrame(parent, height=1, fg_color=DIVIDER_COLOR, corner_radius=0)
+            sep.grid(row=row_idx * 2 - 1, column=0, sticky="ew", padx=20)
 
-        top_row = ctk.CTkFrame(card, fg_color="transparent")
-        top_row.pack(fill="x", padx=PADDING_CARD, pady=(PADDING_CARD, 10))
+        row = ctk.CTkFrame(parent, fg_color="transparent")
+        row.grid(row=row_idx * 2, column=0, sticky="ew", padx=20, pady=16)
+        row.grid_columnconfigure(1, weight=1)
 
-        ic = get_icon(icon_name, size=20, color=ACCENT_SOFT_TEXT, stroke_width=1.9)
-        badge = ctk.CTkLabel(
-            top_row,
+        ic = get_icon(icon_name, size=18, color=TEXT_MUTED, stroke_width=1.5)
+        ctk.CTkLabel(
+            row,
             text="",
             image=ic,
-            width=40,
-            height=40,
-            corner_radius=11,
-            fg_color=ACCENT_SOFT_BG,
-        )
-        badge.pack(side="left", padx=(0, 12))
+            width=24,
+            fg_color="transparent",
+        ).grid(row=0, column=0, rowspan=2, sticky="nw", padx=(0, 16), pady=2)
 
-        title_lbl = ctk.CTkLabel(
-            top_row,
-            text=title,
-            font=ui_font(15, "bold"),
-            text_color=TEXT_MAIN,
-            anchor="w",
-        )
-        title_lbl.pack(side="left", fill="x", expand=True)
+        info_top = ctk.CTkFrame(row, fg_color="transparent")
+        info_top.grid(row=0, column=1, sticky="ew")
 
         ctk.CTkLabel(
-            card,
+            info_top,
+            text=title,
+            font=ui_font(14, "semibold"),
+            text_color=TEXT_MAIN,
+            anchor="w",
+        ).pack(side="left")
+
+        status_lbl = ctk.CTkLabel(
+            info_top,
+            text=status_text,
+            font=mono_font(11),
+            text_color=TEXT_SUBTLE,
+            fg_color="transparent",
+            padx=0,
+            pady=0,
+        )
+        status_lbl.pack(side="left", padx=(12, 0))
+
+        ctk.CTkLabel(
+            row,
             text=desc,
             font=ui_font(12),
             text_color=TEXT_MUTED,
-            wraplength=440,
             justify="left",
             anchor="w",
-        ).pack(anchor="w", padx=PADDING_CARD, pady=(0, 18))
+        ).grid(row=1, column=1, sticky="w", pady=(4, 0))
 
-        footer_row = ctk.CTkFrame(card, fg_color="transparent")
-        footer_row.pack(fill="x", padx=PADDING_CARD, pady=(0, PADDING_CARD))
-
-        is_active = "Aktif" in status_text
-        status_lbl = ctk.CTkLabel(
-            footer_row,
-            text=status_text,
-            font=ui_font(11, "semibold"),
-            text_color=SUCCESS_COLOR if is_active else ACCENT_SOFT_TEXT,
-            fg_color=STATUS_PILL_BG if is_active else ACCENT_SOFT_BG,
-            corner_radius=8,
-            padx=10,
-            pady=4,
-        )
-        status_lbl.pack(side="left")
+        btn_box = ctk.CTkFrame(row, fg_color="transparent")
+        btn_box.grid(row=0, column=2, rowspan=2, sticky="e", padx=(16, 0))
 
         for btn_lbl, btn_cmd, is_primary in buttons:
             ctk.CTkButton(
-                footer_row,
+                btn_box,
                 text=btn_lbl,
-                height=34,
-                width=62 if len(btn_lbl) <= 6 else 108,
-                font=ui_font(12, "bold" if is_primary else "normal"),
-                fg_color=ACCENT_COLOR if is_primary else SECONDARY_BTN,
+                height=32,
+                width=56 if len(btn_lbl) <= 6 else 108,
+                font=ui_font(12, "semibold" if is_primary else "normal"),
+                fg_color=PRIMARY_BTN_BG if is_primary else SECONDARY_BTN,
                 border_width=0 if is_primary else 1,
                 border_color=SECONDARY_BTN_BORDER,
-                text_color=ACCENT_TEXT if is_primary else TEXT_MAIN,
-                hover_color=ACCENT_HOVER if is_primary else SECONDARY_BTN_HOVER,
-                corner_radius=9,
+                text_color=PRIMARY_BTN_TEXT if is_primary else TEXT_MAIN,
+                hover_color=PRIMARY_BTN_HOVER if is_primary else SECONDARY_BTN_HOVER,
+                corner_radius=8,
                 command=btn_cmd,
-            ).pack(side="right", padx=(6, 0))
+            ).pack(side="right", padx=(8, 0))
 
         return status_lbl
 
@@ -1043,9 +1027,8 @@ class App(_AppBase):
                 btn.configure(
                     image=self._ic_rail[f"{name}_act"],
                     fg_color=RAIL_ITEM_ACTIVE,
-                    border_width=1,
-                    border_color=CARD_BORDER,
-                    text_color=ACCENT_COLOR,
+                    border_width=0,
+                    text_color=TEXT_MAIN,
                 )
             else:
                 ind.configure(fg_color="transparent")
@@ -1498,7 +1481,7 @@ class App(_AppBase):
             return
 
         self._batch_status_lbl.configure(
-            text=f"İşleniyor (0/{len(files)})…", text_color=ACCENT_SOFT_TEXT, fg_color=ACCENT_SOFT_BG
+            text=f"İşleniyor (0/{len(files)})…", text_color=ACCENT_SOFT_TEXT, fg_color="transparent"
         )
         self.text_panel.set_status(f"⏳ {len(files)} dosya sırayla okunuyor…")
 
@@ -1516,7 +1499,7 @@ class App(_AppBase):
             def finish():
                 if not combined.strip():
                     self._batch_status_lbl.configure(
-                        text="Metin çıkarılamadı", text_color=STOP_BTN_TEXT, fg_color=STOP_BTN_BG
+                        text="Metin çıkarılamadı", text_color=STOP_BTN_TEXT, fg_color="transparent"
                     )
                     self.text_panel.set_status("❌ Seçilen dosyalardan metin çıkarılamadı.")
                     return
@@ -1524,7 +1507,7 @@ class App(_AppBase):
                 self._batch_status_lbl.configure(
                     text=f"Tamamlandı ({len(files)} dosya)",
                     text_color=SUCCESS_COLOR,
-                    fg_color=STATUS_PILL_BG,
+                    fg_color="transparent",
                 )
                 self._switch_view("home")
                 self.text_panel.set_ocr_text(combined)
@@ -1563,7 +1546,7 @@ class App(_AppBase):
         self._batch_status_lbl.configure(
             text=f"Metinler çıkarılıyor (0/{len(files)})…",
             text_color=ACCENT_SOFT_TEXT,
-            fg_color=ACCENT_SOFT_BG,
+            fg_color="transparent",
         )
         self.text_panel.set_status(f"⏳ {len(files)} dosya tek MP3 olarak hazırlanıyor…")
 
@@ -1595,7 +1578,7 @@ class App(_AppBase):
 
                 def on_done():
                     self._batch_status_lbl.configure(
-                        text="MP3 hazır", text_color=SUCCESS_COLOR, fg_color=STATUS_PILL_BG
+                        text="MP3 hazır", text_color=SUCCESS_COLOR, fg_color="transparent"
                     )
                     self.text_panel.set_status(f"Toplu MP3 kaydedildi: {output_path}")
 
@@ -1606,7 +1589,7 @@ class App(_AppBase):
                     0,
                     lambda: (
                         self._batch_status_lbl.configure(
-                            text="Hata oluştu", text_color=STOP_BTN_TEXT, fg_color=STOP_BTN_BG
+                            text="Hata oluştu", text_color=STOP_BTN_TEXT, fg_color="transparent"
                         ),
                         self.text_panel.set_status(f"❌ Toplu MP3 hatası: {err_msg}"),
                     ),
@@ -1630,7 +1613,7 @@ class App(_AppBase):
             self._sleep_status_lbl.configure(
                 text=f"Hazır ({mins:02d}:{rem:02d} · okuma başlayınca)",
                 text_color=ACCENT_SOFT_TEXT,
-                fg_color=ACCENT_SOFT_BG,
+                fg_color="transparent",
             )
             self.audio_panel.set_sleep_badge(f"{mins:02d}:{rem:02d} (hazır)", active=False)
             self.text_panel.set_status(
@@ -1648,7 +1631,7 @@ class App(_AppBase):
         if self._sleep_remaining_sec <= 0:
             self._sleep_after_id = None
             self._sleep_status_lbl.configure(
-                text="Kapalı", text_color=ACCENT_SOFT_TEXT, fg_color=ACCENT_SOFT_BG
+                text="Kapalı", text_color=TEXT_SUBTLE, fg_color="transparent"
             )
             self.audio_panel.set_sleep_badge("")
             if self.tts_service.is_playing or self.tts_service.is_paused:
@@ -1660,7 +1643,7 @@ class App(_AppBase):
         self._sleep_status_lbl.configure(
             text=f"Kalan: {mins:02d}:{secs:02d}",
             text_color=SUCCESS_COLOR,
-            fg_color=STATUS_PILL_BG,
+            fg_color="transparent",
         )
         self.audio_panel.set_sleep_badge(f"{mins:02d}:{secs:02d}", active=True)
         self._sleep_remaining_sec -= 1
@@ -1677,7 +1660,7 @@ class App(_AppBase):
         self._sleep_armed_sec = 0
         if hasattr(self, "_sleep_status_lbl"):
             self._sleep_status_lbl.configure(
-                text="Kapalı", text_color=ACCENT_SOFT_TEXT, fg_color=ACCENT_SOFT_BG
+                text="Kapalı", text_color=TEXT_SUBTLE, fg_color="transparent"
             )
         if hasattr(self, "audio_panel"):
             self.audio_panel.set_sleep_badge("")

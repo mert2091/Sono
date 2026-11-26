@@ -23,6 +23,9 @@ from ui.theme import (
     PADDING_CARD,
     PLAYER_BG,
     PLAYER_BORDER,
+    PRIMARY_BTN_BG,
+    PRIMARY_BTN_HOVER,
+    PRIMARY_BTN_TEXT,
     RADIUS_BTN,
     RADIUS_CARD,
     SECONDARY_BTN,
@@ -74,15 +77,15 @@ class AudioPanel(ctk.CTkFrame):
         self._speed_map = dict(self.SPEED_OPTIONS)
 
         # Çift temalı Lucide ikonları
-        self._ic_prev = get_icon("skip-back", size=16, color=TEXT_MAIN)
-        self._ic_next = get_icon("skip-forward", size=16, color=TEXT_MAIN)
-        self._ic_pause = get_icon("pause", size=18, color=ACCENT_TEXT, stroke_width=2.2, filled=True)
-        self._ic_play = get_icon("play", size=18, color=ACCENT_TEXT, stroke_width=2.2, filled=True)
-        self._ic_stop = get_icon("square", size=13, color=STOP_BTN_TEXT, stroke_width=2.0, filled=True)
-        self._vol_icon_on = get_icon("volume-2", size=16, color=TEXT_MAIN)
-        self._vol_icon_mute = get_icon("volume-x", size=16, color=STOP_BTN_TEXT)
-        self._ic_sleep = get_icon("moon-star", size=13, color=SUCCESS_COLOR)
-        self._ic_sleep_wait = get_icon("moon-star", size=13, color=ACCENT_SOFT_TEXT)
+        self._ic_prev = get_icon("skip-back", size=16, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_next = get_icon("skip-forward", size=16, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_pause = get_icon("pause", size=16, color=PRIMARY_BTN_TEXT, stroke_width=1.5, filled=True)
+        self._ic_play = get_icon("play", size=16, color=PRIMARY_BTN_TEXT, stroke_width=1.5, filled=True)
+        self._ic_stop = get_icon("square", size=13, color=STOP_BTN_TEXT, stroke_width=1.5, filled=True)
+        self._vol_icon_on = get_icon("volume-2", size=16, color=TEXT_MAIN, stroke_width=1.5)
+        self._vol_icon_mute = get_icon("volume-x", size=16, color=STOP_BTN_TEXT, stroke_width=1.5)
+        self._ic_sleep = get_icon("moon-star", size=13, color=ACCENT_SOFT_TEXT, stroke_width=1.5)
+        self._ic_sleep_wait = get_icon("moon-star", size=13, color=TEXT_MUTED, stroke_width=1.5)
 
         self._setup_ui()
         self._restore_saved_settings()
@@ -92,19 +95,19 @@ class AudioPanel(ctk.CTkFrame):
 
         # ── 1. Sol: Transport Düğmeleri ──
         controls_frame = ctk.CTkFrame(self, fg_color="transparent")
-        controls_frame.grid(row=0, column=0, padx=(PADDING_CARD, 10), pady=12, sticky="w")
+        controls_frame.grid(row=0, column=0, padx=(PADDING_CARD, 8), pady=12, sticky="w")
 
         self.prev_btn = ctk.CTkButton(
             controls_frame,
             text="",
             image=self._ic_prev,
-            width=34,
-            height=34,
+            width=32,
+            height=32,
             command=self._prev_paragraph,
             state="disabled",
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
-            corner_radius=17,
+            corner_radius=16,
         )
         self.prev_btn.pack(side="left", padx=(0, 4))
 
@@ -112,13 +115,13 @@ class AudioPanel(ctk.CTkFrame):
             controls_frame,
             text="",
             image=self._ic_play,
-            width=46,
-            height=46,
+            width=40,
+            height=40,
             command=self._toggle_pause,
             state="disabled",
-            fg_color=ACCENT_COLOR,
-            hover_color=ACCENT_HOVER,
-            corner_radius=23,
+            fg_color=PRIMARY_BTN_BG,
+            hover_color=PRIMARY_BTN_HOVER,
+            corner_radius=20,
         )
         self.pause_btn.pack(side="left", padx=4)
 
@@ -126,13 +129,13 @@ class AudioPanel(ctk.CTkFrame):
             controls_frame,
             text="",
             image=self._ic_next,
-            width=34,
-            height=34,
+            width=32,
+            height=32,
             command=self._next_paragraph,
             state="disabled",
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
-            corner_radius=17,
+            corner_radius=16,
         )
         self.next_btn.pack(side="left", padx=(4, 8))
 
@@ -140,15 +143,14 @@ class AudioPanel(ctk.CTkFrame):
             controls_frame,
             text="",
             image=self._ic_stop,
-            width=34,
-            height=34,
+            width=32,
+            height=32,
             command=self._stop,
             state="disabled",
-            fg_color=STOP_BTN_BG,
-            border_width=1,
-            border_color=STOP_BTN_BORDER,
+            fg_color="transparent",
+            border_width=0,
             hover_color=STOP_BTN_HOVER,
-            corner_radius=10,
+            corner_radius=8,
         )
         self.stop_btn.pack(side="left")
 
@@ -205,35 +207,34 @@ class AudioPanel(ctk.CTkFrame):
         )
         self.total_time_lbl.grid(row=0, column=2, padx=(8, 0))
 
-        # ── 4. Sağ: Uyku Rozeti, Hız, Ses Seviyesi, Ses Seçici ──
+        # ── 4. Sağ: Uyku Göstergesi, Hız, Ses Seviyesi, Ses Seçici ──
         right_frame = ctk.CTkFrame(self, fg_color="transparent")
-        right_frame.grid(row=0, column=3, padx=(10, PADDING_CARD), pady=12, sticky="e")
+        right_frame.grid(row=0, column=3, padx=(8, PADDING_CARD), pady=12, sticky="e")
 
         self.sleep_pill = ctk.CTkLabel(
             right_frame,
             text="",
             image=self._ic_sleep,
             compound="left",
-            font=mono_font(11, "bold"),
-            text_color=SUCCESS_COLOR,
-            fg_color=STATUS_PILL_BG,
-            corner_radius=9,
-            padx=9,
-            pady=4,
+            font=mono_font(11),
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+            padx=4,
+            pady=2,
         )
 
         # Hız Seçici (Tek tıkla açılan hız kutusu)
         self._speed_lbl = ctk.CTkLabel(
             right_frame, text="Hız", font=ui_font(11), text_color=TEXT_MUTED
         )
-        self._speed_lbl.pack(side="left", padx=(0, 6))
+        self._speed_lbl.pack(side="left", padx=(0, 8))
 
         self.speed_dropdown = ctk.CTkOptionMenu(
             right_frame,
             values=[label for label, _ in self.SPEED_OPTIONS],
             command=self._on_speed_change,
-            width=86,
-            height=34,
+            width=84,
+            height=32,
             font=mono_font(12, "bold"),
             fg_color=SECONDARY_BTN,
             button_color=SECONDARY_BTN_BORDER,
@@ -242,39 +243,39 @@ class AudioPanel(ctk.CTkFrame):
             dropdown_hover_color=SECONDARY_BTN,
             dropdown_text_color=TEXT_MAIN,
             text_color=TEXT_MAIN,
-            corner_radius=RADIUS_BTN,
+            corner_radius=8,
         )
         self.speed_dropdown.set("1.0x")
-        self.speed_dropdown.pack(side="left", padx=(0, 10))
+        self.speed_dropdown.pack(side="left", padx=(0, 12))
 
         # Ses / Sessize Al
         self.mute_btn = ctk.CTkButton(
             right_frame,
             text="",
             image=self._vol_icon_on,
-            width=30,
-            height=30,
+            width=32,
+            height=32,
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
             corner_radius=8,
             command=self._toggle_mute,
         )
-        self.mute_btn.pack(side="left", padx=(0, 3))
+        self.mute_btn.pack(side="left", padx=(0, 4))
 
         self.vol_slider = ctk.CTkSlider(
             right_frame,
             from_=0,
             to=100,
             number_of_steps=20,
-            width=66,
+            width=64,
             progress_color=ACCENT_COLOR,
             button_color=TEXT_MAIN,
             button_hover_color=ACCENT_HOVER,
             button_length=0,
-            button_corner_radius=7,
+            button_corner_radius=6,
             fg_color=SLIDER_TRACK,
             command=self._on_volume_change,
-            height=13,
+            height=12,
         )
         self.vol_slider.set(100)
         self.vol_slider.bind("<ButtonRelease-1>", self._on_volume_release)
@@ -295,8 +296,8 @@ class AudioPanel(ctk.CTkFrame):
             right_frame,
             values=list(self.voice_map.keys()),
             command=self._on_voice_change,
-            width=162,
-            height=34,
+            width=160,
+            height=32,
             font=ui_font(12),
             fg_color=SECONDARY_BTN,
             button_color=SECONDARY_BTN_BORDER,
@@ -305,7 +306,7 @@ class AudioPanel(ctk.CTkFrame):
             dropdown_hover_color=SECONDARY_BTN,
             dropdown_text_color=TEXT_MAIN,
             text_color=TEXT_MAIN,
-            corner_radius=RADIUS_BTN,
+            corner_radius=8,
         )
         self.voice_dropdown.set("TR  Emel · Kadın")
         self.voice_dropdown.pack(side="left")
@@ -477,8 +478,8 @@ class AudioPanel(ctk.CTkFrame):
         self.sleep_pill.configure(
             text=f" {clean}",
             image=self._ic_sleep if active else self._ic_sleep_wait,
-            text_color=SUCCESS_COLOR if active else ACCENT_SOFT_TEXT,
-            fg_color=STATUS_PILL_BG if active else ACCENT_SOFT_BG,
+            text_color=ACCENT_SOFT_TEXT if active else TEXT_MUTED,
+            fg_color="transparent",
         )
         self.sleep_pill.pack(side="left", padx=(0, 10), before=self._speed_lbl)
 

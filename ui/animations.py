@@ -22,12 +22,12 @@ import customtkinter as ctk
 
 from ui.theme import (
     ACCENT_COLOR,
-    ACCENT_GLOW,
     CARD_BG,
     CARD_BORDER,
     DASHED_BORDER,
     INNER_BG,
     PLAYER_BG,
+    SECONDARY_BTN,
     STOP_BTN_TEXT,
     SUCCESS_COLOR,
     TEXT_MAIN,
@@ -282,11 +282,6 @@ class StudioDropzoneBackdrop(tk.Canvas):
             return
         self._hovered = hovered
         self._redraw_border()
-        if hovered and not is_reduced_motion():
-            self._last_ts = time.monotonic()
-            self._ensure_loop()
-        elif not self._scanning:
-            self._redraw_effects()
 
     def set_scanning(self, active: bool) -> None:
         self._scanning = bool(active)
@@ -296,6 +291,7 @@ class StudioDropzoneBackdrop(tk.Canvas):
         if self._scanning and not is_reduced_motion():
             self._ensure_loop()
         else:
+            self._stop_loop()
             self.delete("scan")
             self._redraw_effects()
 
@@ -315,9 +311,8 @@ class StudioDropzoneBackdrop(tk.Canvas):
         self._after_id = None
         if not self.winfo_exists():
             return
-        if is_reduced_motion() or (not self._hovered and not self._scanning):
+        if is_reduced_motion() or not self._scanning:
             self.delete("scan")
-            self.delete("halo")
             return
 
         now = time.monotonic()
@@ -337,8 +332,8 @@ class StudioDropzoneBackdrop(tk.Canvas):
         if w < 24 or h < 24:
             return
         self.delete("dash_border")
-        pad = 3
-        r = 12
+        pad = 2
+        r = 8
         x1, y1, x2, y2 = pad, pad, w - pad, h - pad
         pts = [
             x1 + r, y1, x2 - r, y1,
@@ -352,11 +347,11 @@ class StudioDropzoneBackdrop(tk.Canvas):
         if self._scanning or self._hovered:
             col = resolve_color(ACCENT_COLOR)
             dash = (8, 4) if self._scanning else (6, 4)
-            width = 1.8
+            width = 1.6
         else:
             col = resolve_color(DASHED_BORDER)
             dash = (6, 5)
-            width = 1.4
+            width = 1.2
 
         self.create_line(
             pts,
@@ -373,55 +368,15 @@ class StudioDropzoneBackdrop(tk.Canvas):
         if w < 40 or h < 40:
             return
 
-        bg = resolve_color(self._bg_token)
         accent = resolve_color(ACCENT_COLOR)
-        glow = resolve_color(ACCENT_GLOW)
 
-        # 1) Sakin mimari akustik halkalar (boşta çok hafif, hover'da canlanan)
+        # Canlı Gemini OCR tarama çizgisi (yalnız aktifken)
         self.delete("halo")
-        cx, cy = w / 2.0, h * 0.40
-        if self._hovered and not self._scanning and not is_reduced_motion():
-            max_r = min(w, h) * 0.36
-            for k in range(2):
-                prog = (self._phase * 0.42 + k * 0.5) % 1.0
-                rad = 30 + prog * max_r
-                alpha = (1.0 - prog) * 0.32
-                ring_col = hex_blend(bg, accent, alpha)
-                self.create_oval(
-                    cx - rad, cy - rad, cx + rad, cy + rad,
-                    outline=ring_col,
-                    width=1.4,
-                    tags="halo",
-                )
-        elif not self._scanning:
-            for rad, alpha in ((56, 0.11), (92, 0.06)):
-                self.create_oval(
-                    cx - rad, cy - rad, cx + rad, cy + rad,
-                    outline=hex_blend(bg, accent, alpha),
-                    width=1.0,
-                    tags="halo",
-                )
-
-        # 2) Canlı Gemini OCR tarama ışını
         self.delete("scan")
         if self._scanning and not is_reduced_motion():
             cycle = (self._phase / 1.9) % 2.0
             t = cycle if cycle <= 1.0 else (2.0 - cycle)
             y = 14 + _ease_in_out_sine(t) * max(20, h - 28)
-            direction = 1 if cycle <= 1.0 else -1
-
-            # Yumuşak trailing glow şeritleri
-            for step in range(1, 7):
-                ty = y - direction * step * 5
-                if 8 < ty < h - 8:
-                    fade = max(0.0, (1.0 - step / 7.0) * 0.24)
-                    self.create_line(
-                        12, ty, w - 12, ty,
-                        fill=hex_blend(bg, glow, fade),
-                        width=4,
-                        tags="scan",
-                    )
-            # Keskin ana tarama çizgisi
             self.create_line(
                 10, y, w - 10, y,
                 fill=accent,
@@ -522,22 +477,15 @@ class AcousticProgressRibbon(tk.Canvas):
 
         # Arka track
         accent = resolve_color(ACCENT_COLOR)
-        glow = resolve_color(ACCENT_GLOW)
         self.create_rectangle(0, 0, w, h, fill=hex_blend(bg, accent, 0.14), outline="")
 
-        # Kayan ışık şeridi
+        # Kayan ilerleme şeridi
         seg_w = max(80, int(w * 0.28))
         pos = _ease_in_out_sine(self._phase) * (w + seg_w) - seg_w
         x1 = max(0, pos)
         x2 = min(w, pos + seg_w)
         if x2 > x1:
             self.create_rectangle(x1, 0, x2, h, fill=accent, outline="")
-            cx = (x1 + x2) / 2.0
-            core = seg_w * 0.28
-            self.create_rectangle(
-                max(x1, cx - core), 0, min(x2, cx + core), h,
-                fill=glow, outline="",
-            )
 
     def _on_theme_change(self, _mode: str) -> None:
         if not self.winfo_exists():
@@ -610,7 +558,7 @@ class LivePulseDot(tk.Canvas):
         return SUCCESS_COLOR
 
     def _start_or_stop(self) -> None:
-        if is_reduced_motion():
+        if self._mode != "busy" or is_reduced_motion():
             self._stop_loop()
             self._draw()
             return
@@ -630,14 +578,13 @@ class LivePulseDot(tk.Canvas):
         self._after_id = None
         if not self.winfo_exists():
             return
-        if is_reduced_motion():
+        if self._mode != "busy" or is_reduced_motion():
             self._draw()
             return
         now = time.monotonic()
         dt = min(0.08, max(0.01, now - self._last_ts))
         self._last_ts = now
-        period = 1.3 if self._mode == "busy" else 2.4
-        self._phase = (self._phase + dt / period) % 1.0
+        self._phase = (self._phase + dt / 1.3) % 1.0
         self._draw()
         self._after_id = self.after(36, self._tick)
 
@@ -647,7 +594,7 @@ class LivePulseDot(tk.Canvas):
         dot_col = resolve_color(self._color_token())
         bg = resolve_color(self._bg_token)
 
-        if not is_reduced_motion():
+        if self._mode == "busy" and not is_reduced_motion():
             prog = _ease_out_cubic(self._phase)
             ring_r = 3.0 + prog * (self._size * 0.44 - 3.0)
             alpha = (1.0 - prog) * 0.65
@@ -657,8 +604,8 @@ class LivePulseDot(tk.Canvas):
                     outline=hex_blend(bg, dot_col, alpha),
                     width=1.4,
                 )
-        # Sabit merkez nokta
-        r = 3.2
+        # Sabit merkez nokta (6px)
+        r = 3.0
         self.create_oval(cx - r, cy - r, cx + r, cy + r, fill=dot_col, outline="")
 
     def _on_theme_change(self, _mode: str) -> None:
@@ -720,7 +667,7 @@ class SlidingTabBar(ctk.CTkFrame):
                 height=32,
                 font=ui_font(12, "semibold" if is_act else "normal"),
                 fg_color="transparent",
-                hover_color=("rgba_skip", "rgba_skip") if False else ("#EEF2F7", "#1D2431"),
+                hover_color=SECONDARY_BTN,
                 text_color=TEXT_MAIN if is_act else TEXT_MUTED,
                 corner_radius=8,
                 command=lambda n=name: self.select(n, notify=True),
@@ -730,12 +677,12 @@ class SlidingTabBar(ctk.CTkFrame):
 
         self._track = tk.Canvas(
             self,
-            height=3,
+            height=2,
             bg=resolve_color(bg_token),
             highlightthickness=0,
             bd=0,
         )
-        self._track.pack(fill="x", pady=(3, 0))
+        self._track.pack(fill="x", pady=(4, 0))
         self._track.bind("<Configure>", lambda _e: self._snap_to_active())
         self.bind("<Destroy>", self._on_destroy, add="+")
         register_theme_listener(self._on_theme_change)
@@ -809,12 +756,12 @@ class SlidingTabBar(ctk.CTkFrame):
         if w <= 2:
             return
         # İnce taban çizgisi
-        self._track.create_line(0, 2, w, 2, fill=resolve_color(CARD_BORDER), width=1)
+        self._track.create_line(0, 1, w, 1, fill=resolve_color(CARD_BORDER), width=1)
         if self._cur_w > 2:
             self._track.create_line(
-                self._cur_x, 1.5, self._cur_x + self._cur_w, 1.5,
+                self._cur_x, 1, self._cur_x + self._cur_w, 1,
                 fill=resolve_color(ACCENT_COLOR),
-                width=2.6,
+                width=2.0,
                 capstyle=tk.ROUND,
             )
 

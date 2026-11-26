@@ -37,6 +37,9 @@ from ui.theme import (
     INNER_BG,
     ISLAND_ACTIVE_BG,
     PADDING_CARD,
+    PRIMARY_BTN_BG,
+    PRIMARY_BTN_HOVER,
+    PRIMARY_BTN_TEXT,
     RADIUS_BTN,
     RADIUS_CARD,
     SECONDARY_BTN,
@@ -176,7 +179,7 @@ class SettingsPanel(ctk.CTkFrame):
 
         # ── Sol Ada Menü + Stüdyoya Dön ──
         left_holder = ctk.CTkFrame(self, fg_color="transparent", width=232)
-        left_holder.grid(row=0, column=0, sticky="nw", padx=(0, 18))
+        left_holder.grid(row=0, column=0, sticky="nw", padx=(0, 16))
         left_holder.grid_propagate(False)
 
         left_island = ctk.CTkFrame(
@@ -197,8 +200,8 @@ class SettingsPanel(ctk.CTkFrame):
             ("about", "Hakkında", "info"),
         ]
         for idx, (key, label, icon_name) in enumerate(nav_items):
-            ic_idle = get_icon(icon_name, size=15, color=TEXT_MUTED)
-            ic_act = get_icon(icon_name, size=15, color=ACCENT_SOFT_TEXT, stroke_width=2.1)
+            ic_idle = get_icon(icon_name, size=15, color=TEXT_MUTED, stroke_width=1.5)
+            ic_act = get_icon(icon_name, size=15, color=TEXT_MAIN, stroke_width=1.8)
             self._nav_icons_idle[key] = ic_idle
             self._nav_icons_act[key] = ic_act
 
@@ -207,34 +210,34 @@ class SettingsPanel(ctk.CTkFrame):
                 text=f" {label}",
                 image=ic_idle,
                 compound="left",
-                height=38,
+                height=36,
                 anchor="w",
                 font=ui_font(12),
                 fg_color="transparent",
                 hover_color=SECONDARY_BTN,
                 text_color=TEXT_MUTED,
-                corner_radius=10,
+                corner_radius=8,
                 command=lambda k=key: self.select_tab(k),
             )
-            pad_top = 10 if idx == 0 else 2
-            pad_bot = 10 if idx == len(nav_items) - 1 else 2
+            pad_top = 8 if idx == 0 else 2
+            pad_bot = 8 if idx == len(nav_items) - 1 else 2
             btn.pack(fill="x", padx=8, pady=(pad_top, pad_bot))
             self._nav_buttons[key] = btn
 
-        self._ic_back = get_icon("arrow-left", size=14, color=TEXT_MAIN)
+        self._ic_back = get_icon("arrow-left", size=14, color=TEXT_MAIN, stroke_width=1.5)
         back_btn = ctk.CTkButton(
             left_holder,
             text=" Stüdyoya dön",
             image=self._ic_back,
             compound="left",
-            height=38,
+            height=36,
             font=ui_font(12, "semibold"),
             fg_color=CARD_BG,
             border_width=1,
             border_color=CARD_BORDER,
             text_color=TEXT_MAIN,
             hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=12,
+            corner_radius=8,
             command=self._handle_back,
         )
         back_btn.pack(fill="x", pady=(12, 0))
@@ -284,12 +287,12 @@ class SettingsPanel(ctk.CTkFrame):
         ctk.CTkLabel(
             sc_title_box,
             text="Klavye kısayolları",
-            font=ui_font(15, "bold"),
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
         ).pack(anchor="w")
         ctk.CTkLabel(
             sc_title_box,
-            text="İstediğin kısayolu değiştir ya da hepsini tek anahtarla kapat.",
+            text="İstediğin kısayolu değiştir ya da hepsini tek anahtarla kapat",
             font=ui_font(12),
             text_color=TEXT_MUTED,
         ).pack(anchor="w")
@@ -320,14 +323,14 @@ class SettingsPanel(ctk.CTkFrame):
         ctk.CTkButton(
             sc_ctrl,
             text="Varsayılana dön",
-            height=34,
+            height=32,
             font=ui_font(12, "semibold"),
             fg_color=SECONDARY_BTN,
             border_width=1,
             border_color=SECONDARY_BTN_BORDER,
             text_color=TEXT_MAIN,
             hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=9,
+            corner_radius=8,
             command=self._reset_shortcuts,
         ).pack(side="left")
 
@@ -337,14 +340,14 @@ class SettingsPanel(ctk.CTkFrame):
             font=ui_font(12, "semibold"),
             text_color=STOP_BTN_TEXT,
             fg_color=STOP_BTN_BG,
-            corner_radius=10,
+            corner_radius=8,
             padx=12,
             pady=6,
             anchor="w",
         )
 
         self.sc_rows_container = ctk.CTkFrame(sc_card, fg_color="transparent")
-        self.sc_rows_container.grid(row=2, column=0, sticky="ew", padx=PADDING_CARD, pady=(0, 14))
+        self.sc_rows_container.grid(row=2, column=0, sticky="ew", padx=PADDING_CARD, pady=(0, 12))
         self.sc_rows_container.grid_columnconfigure(0, weight=1)
 
         self._render_shortcut_rows()
@@ -363,17 +366,17 @@ class SettingsPanel(ctk.CTkFrame):
         ctk.CTkLabel(
             feat_card,
             text="Özellikler ve erişilebilirlik",
-            font=ui_font(15, "bold"),
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
-        ).grid(row=0, column=0, sticky="w", padx=PADDING_CARD, pady=(PADDING_CARD, 10))
+        ).grid(row=0, column=0, sticky="w", padx=PADDING_CARD, pady=(PADDING_CARD, 8))
 
         features_spec = [
-            ("highlight_sentence", "Okunan kelimeyi vurgula", "3 katmanlı takip ile metin kendiliğinden kayar."),
-            ("resume_last_position", "Kaldığı yerden devam", "Kitaplıktaki belgeler son paragraftan sürdürülür."),
-            ("clipboard_monitor", "Pano izleme", 'Metin kopyalayınca "Okuyayım mı?" bildirimi açılır.'),
-            ("minimize_to_tray", "Sistem tepsisine küçült", "Pencere kapatıldığında arka planda hazır kalır."),
-            ("start_with_windows", "Windows ile başlat", "Bilgisayar açıldığında Sono otomatik başlar."),
-            ("reduced_motion", "Animasyonları azalt", "Dalga formu, tarama ışını ve geçiş hareketlerini durağanlaştırır."),
+            ("highlight_sentence", "Okunan kelimeyi vurgula", "3 katmanlı takip ile metin kendiliğinden kayar"),
+            ("resume_last_position", "Kaldığı yerden devam", "Kitaplıktaki belgeler son paragraftan sürdürülür"),
+            ("clipboard_monitor", "Pano izleme", 'Metin kopyalayınca "Okuyayım mı?" bildirimi açılır'),
+            ("minimize_to_tray", "Sistem tepsisine küçült", "Pencere kapatıldığında arka planda hazır kalır"),
+            ("start_with_windows", "Windows ile başlat", "Bilgisayar açıldığında Sono otomatik başlar"),
+            ("reduced_motion", "Animasyonları azalt", "Dalga formu, tarama çizgisi ve geçiş hareketlerini durağanlaştırır"),
         ]
 
         for idx, (fkey, ftitle, fdesc) in enumerate(features_spec):
@@ -529,7 +532,7 @@ class SettingsPanel(ctk.CTkFrame):
                 ctk.CTkButton(
                     right,
                     text="Değiştir" if keys else "Ata",
-                    width=72 if keys else 54,
+                    width=72 if keys else 52,
                     height=32,
                     font=ui_font(12),
                     fg_color=SECONDARY_BTN,
@@ -537,10 +540,10 @@ class SettingsPanel(ctk.CTkFrame):
                     border_color=SECONDARY_BTN_BORDER,
                     text_color=TEXT_MAIN,
                     hover_color=SECONDARY_BTN_HOVER,
-                    corner_radius=9,
+                    corner_radius=8,
                     state="normal" if master_on else "disabled",
                     command=lambda aid=action_id: self._start_recording(aid),
-                ).pack(side="left", padx=(10, 12))
+                ).pack(side="left", padx=(8, 12))
 
             sw = ctk.CTkSwitch(
                 right,
@@ -716,14 +719,14 @@ class SettingsPanel(ctk.CTkFrame):
         card.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
-            card, text="Görünüm ve stüdyo teması", font=ui_font(15, "bold"), text_color=TEXT_MAIN
+            card, text="Görünüm ve stüdyo teması", font=ui_font(14, "semibold"), text_color=TEXT_MAIN
         ).grid(row=0, column=0, sticky="w", padx=PADDING_CARD, pady=(PADDING_CARD, 4))
         ctk.CTkLabel(
             card,
-            text="Koyu Stüdyo veya Açık Stüdyo temasını anlık olarak seç.",
+            text="Koyu veya Açık temasını anlık olarak seç",
             font=ui_font(12),
             text_color=TEXT_MUTED,
-        ).grid(row=1, column=0, sticky="w", padx=PADDING_CARD, pady=(0, 14))
+        ).grid(row=1, column=0, sticky="w", padx=PADDING_CARD, pady=(0, 12))
 
         # İki görsel önizleme kartı
         theme_grid = ctk.CTkFrame(card, fg_color="transparent")
@@ -734,25 +737,25 @@ class SettingsPanel(ctk.CTkFrame):
             theme_grid,
             col=0,
             mode="dark",
-            title="Koyu Stüdyo",
-            subtitle="Obsidian Console · Düşük ışıkta odak",
-            bg_hex="#10141B",
-            rail_hex="#0B0E13",
-            card_hex="#161B24",
-            accent_hex="#2DD4BF",
-            line_hex="#334155",
+            title="Koyu · Grafit",
+            subtitle="Grafit yüzeyler · Düşük ışıkta odak",
+            bg_hex="#141415",
+            rail_hex="#0F0F10",
+            card_hex="#19191B",
+            accent_hex="#E59A3C",
+            line_hex="#2F2F34",
         )
         self._make_theme_preview_card(
             theme_grid,
             col=1,
             mode="light",
-            title="Açık Stüdyo",
-            subtitle="Atelier Paper · Gündüz okuma netliği",
-            bg_hex="#F3F6FA",
-            rail_hex="#EAEFF5",
-            card_hex="#FFFFFF",
-            accent_hex="#0F766E",
-            line_hex="#CBD5E1",
+            title="Açık · Kağıt",
+            subtitle="Sıcak kağıt · Gündüz okuma netliği",
+            bg_hex="#F7F4EE",
+            rail_hex="#EFECE6",
+            card_hex="#FDFBF7",
+            accent_hex="#B45309",
+            line_hex="#D8D2C7",
         )
 
         cur_mode = self.settings.get_general("theme", "dark")
@@ -779,20 +782,20 @@ class SettingsPanel(ctk.CTkFrame):
         )
         self.export_dir_lbl.pack(anchor="w", pady=(2, 0))
 
-        self._ic_folder = get_icon("folder-open", size=14, color=TEXT_MAIN)
+        self._ic_folder = get_icon("folder-open", size=14, color=TEXT_MAIN, stroke_width=1.5)
         ctk.CTkButton(
             row2,
             text=" Klasör seç…",
             image=self._ic_folder,
             compound="left",
-            height=34,
+            height=32,
             font=ui_font(12, "semibold"),
             fg_color=SECONDARY_BTN,
             border_width=1,
             border_color=SECONDARY_BTN_BORDER,
             text_color=TEXT_MAIN,
             hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=9,
+            corner_radius=8,
             command=self._choose_export_dir,
         ).grid(row=0, column=1, sticky="e")
 
@@ -813,7 +816,7 @@ class SettingsPanel(ctk.CTkFrame):
     ) -> None:
         outer = ctk.CTkFrame(
             parent,
-            corner_radius=14,
+            corner_radius=12,
             fg_color=INNER_BG,
             border_width=2,
             border_color=CARD_BORDER,
@@ -823,13 +826,13 @@ class SettingsPanel(ctk.CTkFrame):
 
         # Mini pencere önizlemesi
         preview = ctk.CTkFrame(
-            outer, height=90, corner_radius=10, fg_color=bg_hex, border_width=1, border_color=line_hex
+            outer, height=88, corner_radius=8, fg_color=bg_hex, border_width=1, border_color=line_hex
         )
-        preview.pack(fill="x", padx=12, pady=(12, 10))
+        preview.pack(fill="x", padx=12, pady=(12, 8))
         preview.pack_propagate(False)
 
-        mini_rail = ctk.CTkFrame(preview, width=20, fg_color=rail_hex, corner_radius=6)
-        mini_rail.pack(side="left", fill="y", padx=(5, 6), pady=5)
+        mini_rail = ctk.CTkFrame(preview, width=20, fg_color=rail_hex, corner_radius=4)
+        mini_rail.pack(side="left", fill="y", padx=(4, 6), pady=4)
         ctk.CTkFrame(mini_rail, width=8, height=8, corner_radius=4, fg_color=accent_hex).pack(pady=(8, 0))
         ctk.CTkFrame(mini_rail, width=8, height=3, corner_radius=2, fg_color=line_hex).pack(pady=(6, 0))
         ctk.CTkFrame(mini_rail, width=8, height=3, corner_radius=2, fg_color=line_hex).pack(pady=(4, 0))
@@ -840,9 +843,9 @@ class SettingsPanel(ctk.CTkFrame):
         mini_bar = ctk.CTkFrame(
             mini_body, height=14, fg_color=card_hex, corner_radius=4, border_width=1, border_color=line_hex
         )
-        mini_bar.pack(side="bottom", fill="x", pady=(5, 0))
+        mini_bar.pack(side="bottom", fill="x", pady=(4, 0))
         mini_bar.pack_propagate(False)
-        ctk.CTkFrame(mini_bar, width=8, height=8, corner_radius=4, fg_color=accent_hex).pack(side="left", padx=(5, 4), pady=2)
+        ctk.CTkFrame(mini_bar, width=8, height=8, corner_radius=4, fg_color=accent_hex).pack(side="left", padx=(4, 4), pady=2)
         ctk.CTkFrame(mini_bar, height=3, corner_radius=2, fg_color=line_hex).pack(side="left", fill="x", expand=True, padx=(2, 8), pady=5)
 
         mini_cards = ctk.CTkFrame(mini_body, fg_color="transparent")
@@ -851,27 +854,26 @@ class SettingsPanel(ctk.CTkFrame):
         c1.pack(side="left", fill="both", expand=True, padx=(0, 4))
         c2 = ctk.CTkFrame(mini_cards, fg_color=card_hex, corner_radius=6, border_width=1, border_color=line_hex)
         c2.pack(side="left", fill="both", expand=True, padx=(4, 0))
-        ctk.CTkFrame(c2, height=5, width=48, corner_radius=3, fg_color=accent_hex).pack(anchor="w", padx=7, pady=(8, 4))
-        ctk.CTkFrame(c2, height=4, width=72, corner_radius=2, fg_color=line_hex).pack(anchor="w", padx=7, pady=(0, 3))
-        ctk.CTkFrame(c2, height=4, width=54, corner_radius=2, fg_color=line_hex).pack(anchor="w", padx=7)
+        ctk.CTkFrame(c2, height=5, width=48, corner_radius=3, fg_color=accent_hex).pack(anchor="w", padx=8, pady=(8, 4))
+        ctk.CTkFrame(c2, height=4, width=72, corner_radius=2, fg_color=line_hex).pack(anchor="w", padx=8, pady=(0, 3))
+        ctk.CTkFrame(c2, height=4, width=54, corner_radius=2, fg_color=line_hex).pack(anchor="w", padx=8)
 
-        # Başlık satırı + Aktif rozeti
+        # Başlık satırı + Aktif göstergesi
         meta = ctk.CTkFrame(outer, fg_color="transparent")
         meta.pack(fill="x", padx=12, pady=(0, 12))
         meta.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(meta, text=title, font=ui_font(13, "bold"), text_color=TEXT_MAIN).grid(
+        ctk.CTkLabel(meta, text=title, font=ui_font(13, "semibold"), text_color=TEXT_MAIN).grid(
             row=0, column=0, sticky="w"
         )
         badge = ctk.CTkLabel(
             meta,
             text="Aktif",
             font=mono_font(10, "bold"),
-            text_color=ACCENT_TEXT,
-            fg_color=ACCENT_COLOR,
-            corner_radius=6,
-            padx=7,
-            pady=2,
+            text_color=ACCENT_SOFT_TEXT,
+            fg_color="transparent",
+            padx=0,
+            pady=0,
         )
         badge.grid(row=0, column=1, sticky="e")
 
@@ -912,8 +914,8 @@ class SettingsPanel(ctk.CTkFrame):
         )
         card.grid(row=0, column=0, sticky="ew")
         ctk.CTkLabel(
-            card, text="Ses motoru ve okuma", font=ui_font(15, "bold"), text_color=TEXT_MAIN
-        ).pack(anchor="w", padx=PADDING_CARD, pady=(PADDING_CARD, 6))
+            card, text="Ses motoru ve okuma", font=ui_font(14, "semibold"), text_color=TEXT_MAIN
+        ).pack(anchor="w", padx=PADDING_CARD, pady=(PADDING_CARD, 8))
         ctk.CTkLabel(
             card,
             text="Ses motoru: Microsoft Edge-TTS (doğal çok dilli nöral sesler).\n"
@@ -938,13 +940,13 @@ class SettingsPanel(ctk.CTkFrame):
         card.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
-            card, text="Yapay zeka (Gemini API anahtarı)", font=ui_font(15, "bold"), text_color=TEXT_MAIN
-        ).grid(row=0, column=0, sticky="w", padx=PADDING_CARD, pady=(PADDING_CARD, 6))
+            card, text="Yapay zeka (Gemini API anahtarı)", font=ui_font(14, "semibold"), text_color=TEXT_MAIN
+        ).grid(row=0, column=0, sticky="w", padx=PADDING_CARD, pady=(PADDING_CARD, 8))
 
         has_key = config.has_api_key()
         self.ai_status_lbl = ctk.CTkLabel(
             card,
-            text="Gemini API anahtarı kayıtlı ve hazır." if has_key else "Devam etmek için Gemini API anahtarınızı girin.",
+            text="Gemini API anahtarı kayıtlı ve hazır" if has_key else "Devam etmek için Gemini API anahtarınızı girin",
             font=ui_font(12, "semibold"),
             text_color=SUCCESS_COLOR if has_key else STOP_BTN_TEXT,
         )
@@ -956,9 +958,9 @@ class SettingsPanel(ctk.CTkFrame):
 
         self.api_key_entry = ctk.CTkEntry(
             key_row,
-            placeholder_text="Gemini API anahtarınızı buraya yapıştırın…",
+            placeholder_text="Gemini API anahtarı",
             show="•",
-            height=38,
+            height=36,
             font=mono_font(12),
             fg_color=INNER_BG,
             border_color=CARD_BORDER,
@@ -970,15 +972,15 @@ class SettingsPanel(ctk.CTkFrame):
             self.api_key_entry.insert(0, config.get_api_key())
         self.api_key_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
 
-        self._ic_eye = get_icon("eye", size=15, color=TEXT_MAIN)
-        self._ic_eye_off = get_icon("eye-off", size=15, color=TEXT_MAIN)
+        self._ic_eye = get_icon("eye", size=15, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_eye_off = get_icon("eye-off", size=15, color=TEXT_MAIN, stroke_width=1.5)
 
         self.api_key_toggle_btn = ctk.CTkButton(
             key_row,
             text="",
             image=self._ic_eye,
-            width=40,
-            height=38,
+            width=36,
+            height=36,
             fg_color=SECONDARY_BTN,
             border_width=1,
             border_color=SECONDARY_BTN_BORDER,
@@ -992,11 +994,11 @@ class SettingsPanel(ctk.CTkFrame):
             key_row,
             text="Doğrula ve kaydet",
             width=144,
-            height=38,
-            font=ui_font(12, "bold"),
-            fg_color=ACCENT_COLOR,
-            text_color=ACCENT_TEXT,
-            hover_color=ACCENT_HOVER,
+            height=36,
+            font=ui_font(12, "semibold"),
+            fg_color=PRIMARY_BTN_BG,
+            text_color=PRIMARY_BTN_TEXT,
+            hover_color=PRIMARY_BTN_HOVER,
             corner_radius=RADIUS_BTN,
             command=self._handle_save_api_key,
         )
@@ -1048,14 +1050,14 @@ class SettingsPanel(ctk.CTkFrame):
         ctk.CTkButton(
             card,
             text="Hata kaydını (logs/sono.log) aç",
-            height=34,
+            height=32,
             font=ui_font(12),
             fg_color=SECONDARY_BTN,
             border_width=1,
             border_color=SECONDARY_BTN_BORDER,
             text_color=TEXT_MAIN,
             hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=9,
+            corner_radius=8,
             command=self._open_log_file,
         ).grid(row=5, column=0, sticky="w", padx=PADDING_CARD, pady=(0, PADDING_CARD))
 
@@ -1138,19 +1140,18 @@ class SettingsPanel(ctk.CTkFrame):
         ctk.CTkLabel(
             hdr,
             text="Güncellemeler",
-            font=ui_font(15, "bold"),
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
         ).grid(row=0, column=0, sticky="w")
 
         self.upd_badge_lbl = ctk.CTkLabel(
             hdr,
             text="Denetlenmedi",
-            font=mono_font(11, "bold"),
-            text_color=ACCENT_SOFT_TEXT,
-            fg_color=ACCENT_SOFT_BG,
-            corner_radius=8,
-            padx=10,
-            pady=3,
+            font=mono_font(11),
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+            padx=0,
+            pady=2,
         )
         self.upd_badge_lbl.grid(row=0, column=1, sticky="e")
 
@@ -1236,8 +1237,9 @@ class SettingsPanel(ctk.CTkFrame):
         btn_row.grid(row=6, column=0, sticky="ew", padx=PADDING_CARD, pady=(0, 8))
         btn_row.grid_columnconfigure((0, 1), weight=1)
 
-        self._ic_refresh = get_icon("refresh-cw", size=14, color=TEXT_MAIN)
-        self._ic_dl = get_icon("download", size=14, color=ACCENT_TEXT)
+        self._ic_refresh = get_icon("refresh-cw", size=14, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_dl = get_icon("download", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
+        self._ic_dl_idle = get_icon("download", size=14, color=TEXT_MUTED, stroke_width=1.5)
 
         self.btn_check_upd = ctk.CTkButton(
             btn_row,
@@ -1254,27 +1256,29 @@ class SettingsPanel(ctk.CTkFrame):
             corner_radius=RADIUS_BTN,
             command=self._handle_check_updates,
         )
-        self.btn_check_upd.grid(row=0, column=0, sticky="ew", padx=(0, 6))
+        self.btn_check_upd.grid(row=0, column=0, sticky="ew", padx=(0, 8))
 
         self.btn_install_upd = ctk.CTkButton(
             btn_row,
             text=" İndir ve kur",
-            image=self._ic_dl,
+            image=self._ic_dl_idle,
             compound="left",
             height=40,
-            font=ui_font(12, "bold"),
-            fg_color=ACCENT_COLOR,
-            text_color=ACCENT_TEXT,
-            hover_color=ACCENT_HOVER,
+            font=ui_font(12, "semibold"),
+            fg_color=SECONDARY_BTN,
+            border_width=1,
+            border_color=SECONDARY_BTN_BORDER,
+            text_color=TEXT_MUTED,
+            hover_color=SECONDARY_BTN_HOVER,
             corner_radius=RADIUS_BTN,
             state="disabled",
             command=self._handle_install_update,
         )
-        self.btn_install_upd.grid(row=0, column=1, sticky="ew", padx=(6, 0))
+        self.btn_install_upd.grid(row=0, column=1, sticky="ew", padx=(8, 0))
 
         ctk.CTkLabel(
             card,
-            text="Kurulumdan sonra uygulama kendini yeniden başlatır.",
+            text="Kurulumdan sonra uygulama kendini yeniden başlatır",
             font=ui_font(11),
             text_color=TEXT_MUTED,
         ).grid(row=7, column=0, sticky="w", padx=PADDING_CARD, pady=(0, PADDING_CARD))
@@ -1298,18 +1302,18 @@ class SettingsPanel(ctk.CTkFrame):
         )
         card.grid(row=0, column=0, sticky="ew")
         ctk.CTkLabel(
-            card, text="Sono", font=display_font(22, "bold"), text_color=TEXT_MAIN
+            card, text="Sono", font=display_font(20, "semibold"), text_color=TEXT_MAIN
         ).pack(anchor="w", padx=PADDING_CARD, pady=(PADDING_CARD, 4))
         ctk.CTkLabel(
             card,
-            text="Yapay zeka destekli belge ve ses stüdyosu.",
+            text="Belge okuma ve ses stüdyosu",
             font=ui_font(13),
             text_color=TEXT_MUTED,
-        ).pack(anchor="w", padx=PADDING_CARD, pady=(0, 14))
+        ).pack(anchor="w", padx=PADDING_CARD, pady=(0, 12))
         ctk.CTkLabel(
             card,
             text=f"Sürüm: {self._current_version}\n"
-            "OCR & Yapay Zeka: Google Gemini 3.x\n"
+            "OCR & Çeviri: Google Gemini\n"
             "Seslendirme: Microsoft Edge-TTS\n"
             "İkonlar: Lucide Icons (MIT)\n"
             "Verilerin cihazında kalır · Açık Kaynak (MIT)",
@@ -1336,7 +1340,7 @@ class SettingsPanel(ctk.CTkFrame):
                 btn.configure(
                     image=self._nav_icons_act[k],
                     fg_color=ISLAND_ACTIVE_BG,
-                    text_color=ACCENT_SOFT_TEXT,
+                    text_color=TEXT_MAIN,
                     font=ui_font(12, "semibold"),
                 )
             else:
@@ -1362,18 +1366,30 @@ class SettingsPanel(ctk.CTkFrame):
 
     def set_update_checking(self) -> None:
         self.upd_badge_lbl.configure(
-            text="Denetleniyor…", text_color=ACCENT_SOFT_TEXT, fg_color=ACCENT_SOFT_BG
+            text="Denetleniyor…", text_color=ACCENT_SOFT_TEXT, fg_color="transparent"
         )
         self.btn_check_upd.configure(state="disabled", text=" Denetleniyor…")
-        self.btn_install_upd.configure(state="disabled")
+        self.btn_install_upd.configure(
+            state="disabled",
+            image=self._ic_dl_idle,
+            fg_color=SECONDARY_BTN,
+            border_width=1,
+            text_color=TEXT_MUTED,
+        )
 
     def apply_update_result(self, result) -> None:
         self.btn_check_upd.configure(state="normal", text=" Güncellemeleri denetle")
         if not result.ok:
-            self.upd_badge_lbl.configure(text="Hata", text_color=STOP_BTN_TEXT, fg_color=STOP_BTN_BG)
+            self.upd_badge_lbl.configure(text="Hata", text_color=STOP_BTN_TEXT, fg_color="transparent")
             self.latest_ver_lbl.configure(text="—", text_color=TEXT_MUTED)
             self.release_notes_lbl.configure(text=result.error_message)
-            self.btn_install_upd.configure(state="disabled")
+            self.btn_install_upd.configure(
+                state="disabled",
+                image=self._ic_dl_idle,
+                fg_color=SECONDARY_BTN,
+                border_width=1,
+                text_color=TEXT_MUTED,
+            )
             return
 
         self.latest_ver_lbl.configure(
@@ -1387,14 +1403,29 @@ class SettingsPanel(ctk.CTkFrame):
 
         if result.update_available:
             self.upd_badge_lbl.configure(
-                text="Yeni sürüm var", text_color=ACCENT_SOFT_TEXT, fg_color=ACCENT_SOFT_BG
+                text="Yeni sürüm var", text_color=ACCENT_SOFT_TEXT, fg_color="transparent"
             )
-            self.btn_install_upd.configure(state="normal", text=" İndir ve kur")
+            self.btn_install_upd.configure(
+                state="normal",
+                text=" İndir ve kur",
+                image=self._ic_dl,
+                fg_color=PRIMARY_BTN_BG,
+                border_width=0,
+                text_color=PRIMARY_BTN_TEXT,
+                hover_color=PRIMARY_BTN_HOVER,
+            )
         else:
             self.upd_badge_lbl.configure(
-                text="Güncel", text_color=SUCCESS_COLOR, fg_color=STATUS_PILL_BG
+                text="Güncel", text_color=SUCCESS_COLOR, fg_color="transparent"
             )
-            self.btn_install_upd.configure(state="disabled", text=" İndir ve kur")
+            self.btn_install_upd.configure(
+                state="disabled",
+                text=" İndir ve kur",
+                image=self._ic_dl_idle,
+                fg_color=SECONDARY_BTN,
+                border_width=1,
+                text_color=TEXT_MUTED,
+            )
 
     def set_download_progress(self, downloaded: int, total: int) -> None:
         if total > 0:
@@ -1406,7 +1437,7 @@ class SettingsPanel(ctk.CTkFrame):
 
     def set_download_error(self, message: str) -> None:
         self.upd_badge_lbl.configure(
-            text="İndirme hatası", text_color=STOP_BTN_TEXT, fg_color=STOP_BTN_BG
+            text="İndirme hatası", text_color=STOP_BTN_TEXT, fg_color="transparent"
         )
         self.release_notes_lbl.configure(text=message)
         self.btn_install_upd.configure(state="normal", text=" İndir ve kur")

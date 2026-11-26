@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><title>Sono – Arayüz Taslakları</title>
+<style>
+*{box-sizing:border-box;margin:0}body{font:14px/1.4 "Segoe UI",sans-serif;background:#e9e9e6;padding:24px;color:#222}
+h1{font-size:18px;margin-bottom:4px}p.s{color:#666;margin-bottom:20px}h2{font-size:15px;margin:28px 0 8px}
+.win{width:960px;height:560px;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px #0002;display:flex}
+.btn{padding:7px 12px;border-radius:6px;border:0;font:inherit;cursor:pointer}
+/* A: Koyu, yan menü */
+.a{background:#16181c;color:#ddd}.a nav{width:190px;background:#0f1114;padding:16px 10px}
+.a nav b{display:block;font-size:17px;color:#fff;margin:0 8px 18px}.a nav div{padding:8px 10px;border-radius:6px;margin-bottom:2px;color:#999}
+.a nav .on{background:#23262c;color:#fff}.a main{flex:1;display:flex;flex-direction:column;padding:16px;gap:12px}
+.a .bar{display:flex;gap:8px}.a .btn{background:#23262c;color:#ddd}.a .btn.p{background:#3b82f6;color:#fff}
+.a .cols{flex:1;display:flex;gap:12px}.a .box{flex:1;background:#1e2126;border-radius:8px;padding:12px;color:#aaa}
+.a .box h4{color:#ddd;font-size:12px;margin-bottom:8px;font-weight:600}.a .play{height:44px;background:#1e2126;border-radius:8px;display:flex;align-items:center;gap:10px;padding:0 12px}
+.a .track{flex:1;height:4px;background:#333;border-radius:2px}.a .track i{display:block;width:35%;height:100%;background:#3b82f6}
+/* B: Açık, tek kolon, sekmeler */
+.b{background:#fafaf8;flex-direction:column}.b header{height:52px;border-bottom:1px solid #e3e3df;display:flex;align-items:center;padding:0 18px;gap:18px}
+.b header b{font-size:16px}.b header span{color:#888}.b header .on{color:#111;border-bottom:2px solid #111;padding:15px 0}
+.b .drop{margin:18px;height:130px;border:2px dashed #ccc;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:10px;color:#777}
+.b .btn{background:#fff;border:1px solid #ddd}.b .btn.p{background:#111;color:#fff;border-color:#111}
+.b .out{margin:0 18px;flex:1;background:#fff;border:1px solid #e3e3df;border-radius:10px;padding:14px;color:#555}
+.b footer{height:56px;display:flex;align-items:center;gap:8px;padding:0 18px}.b footer .sp{flex:1}
+/* C: Kompakt araç penceresi */
+.c{width:380px;height:560px;background:#1b1d22;color:#ddd;flex-direction:column;padding:14px;gap:10px}
+.c .top{display:flex;justify-content:space-between;align-items:center}.c .top b{color:#fff}
+.c .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.c .tile{background:#262930;border-radius:8px;padding:14px 10px;text-align:center;font-size:13px}
+.c .tile.on{background:#2f6f4e;color:#fff}.c .txt{flex:1;background:#13151a;border-radius:8px;padding:10px;color:#999;font-size:13px}
+.c .row{display:flex;gap:6px}.c .btn{flex:1;background:#262930;color:#ddd}.c .btn.p{background:#2f6f4e;color:#fff}
+.c select{background:#262930;color:#ddd;border:0;border-radius:6px;padding:6px;font:inherit;flex:1}
+.wrap{display:flex;gap:24px;align-items:flex-start}.note{max-width:420px;color:#555}
+</style></head><body>
+<h1>Sono – Arayüz Taslakları (düşük çözünürlük)</h1>
+<p class="s">3 yön. Birini seç, sonra onu detaylandırırız.</p>
+
+<h2>A · Koyu çalışma alanı (yan menü)</h2>
+<div class="win a">
+ <nav><b>Sono</b><div class="on">Ekran yakala</div><div>Görsel / Belge</div><div>Toplu işlem</div><div>AI araçları</div><div>Geçmiş</div><div style="margin-top:180px">Ayarlar</div></nav>
+ <main>
+  <div class="bar"><button class="btn p">Alan seç (Ctrl+Shift+S)</button><button class="btn">Dosya aç</button><button class="btn">Panodan</button><span style="flex:1"></span><button class="btn">TR → EN</button></div>
+  <div class="cols"><div class="box"><h4>ÇIKARILAN METİN</h4>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</div>
+  <div class="box"><h4>ÇEVİRİ</h4>The quick brown fox jumps over the lazy dog...</div></div>
+  <div class="play">▶<div class="track"><i></i></div>0:12 / 0:34 <button class="btn">Kopyala</button><button class="btn">Dışa aktar</button></div>
+ </main>
+</div>
+
+<h2>B · Açık, sade (sekmeli, sürükle-bırak odaklı)</h2>
+<div class="win b">
+ <header><b>Sono</b><span class="on">Metin çıkar</span><span>Çeviri</span><span>Seslendir</span><span>Geçmiş</span><span style="flex:1"></span><span>⚙</span></header>
+ <div class="drop">Görsel, PDF veya belgeyi buraya bırak — ya da <button class="btn p">Ekranı yakala</button></div>
+ <div class="out">Çıkarılan metin burada görünür. Düzenlenebilir alan...</div>
+ <footer><button class="btn">Çevir</button><button class="btn">▶ Seslendir</button><span class="sp"></span><button class="btn">Kopyala</button><button class="btn p">Kaydet</button></footer>
+</div>
+
+<h2>C · Kompakt araç (tepside duran mini pencere)</h2>
+<div class="wrap">
+<div class="win c">
+ <div class="top"><b>Sono</b><span>— ✕</span></div>
+ <div class="grid"><div class="tile on">Ekran yakala</div><div class="tile">Dosya</div><div class="tile">Pano</div><div class="tile">Geçmiş</div></div>
+ <div class="txt">Son yakalanan metin burada...</div>
+ <div class="row"><select><option>Türkçe</option></select><span style="align-self:center">→</span><select><option>English</option></select></div>
+ <div class="row"><button class="btn">Kopyala</button><button class="btn">▶ Dinle</button><button class="btn p">Çevir</button></div>
+</div>
+<div class="note"><b>Notlar</b><br><br><b>A:</b> Çok özellikli kullanım için; her şey tek ekranda.<br><br><b>B:</b> En sade; yeni kullanıcıya en anlaşılır olanı.<br><br><b>C:</b> Kısayolla açılan hızlı araç; A veya B ile birlikte "mini mod" olarak da kullanılabilir.</div>
+</div>
+</body></html>

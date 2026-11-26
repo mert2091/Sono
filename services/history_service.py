@@ -3,6 +3,7 @@ Geçmiş & Kütüphane Servisi.
 SQLite veritabanı ile okunan belgelerin geçmişini saklar.
 """
 
+import os
 import sqlite3
 import threading
 from datetime import datetime

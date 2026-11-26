@@ -28,13 +28,10 @@ from ui.theme import (
     ACCENT_SOFT_BORDER,
     ACCENT_SOFT_TEXT,
     ACCENT_TEXT,
-    AI_BTN_BG,
-    AI_BTN_BORDER,
-    AI_BTN_HOVER,
-    AI_BTN_TEXT,
     BTN_HEIGHT_MAIN,
     CARD_BG,
     CARD_BORDER,
+    DIVIDER_COLOR,
     FONT_FAMILY,
     HL_ACTIVE_BG,
     HL_ACTIVE_FG,
@@ -42,6 +39,9 @@ from ui.theme import (
     HL_UNREAD_FG,
     INNER_BG,
     PADDING_CARD,
+    PRIMARY_BTN_BG,
+    PRIMARY_BTN_HOVER,
+    PRIMARY_BTN_TEXT,
     RADIUS_BTN,
     RADIUS_CARD,
     RADIUS_INNER,
@@ -149,19 +149,19 @@ class TextPanel(ctk.CTkFrame):
 
         ctk.CTkLabel(
             header_frame,
-            text="Metin Stüdyosu",
-            font=ui_font(15, "bold"),
+            text="Metin",
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
             anchor="w",
         ).grid(row=0, column=0, sticky="w")
 
-        # Kompakt kapsül font boyut kontrolü: [ A- | 14 | A+ ]
+        # Kompakt font boyut kontrolü: [ A- | 14 | A+ ]
         font_pill = ctk.CTkFrame(
             header_frame,
             fg_color=SECONDARY_BTN,
             border_width=1,
             border_color=SECONDARY_BTN_BORDER,
-            corner_radius=9,
+            corner_radius=8,
         )
         font_pill.grid(row=0, column=1, sticky="e")
 
@@ -169,20 +169,20 @@ class TextPanel(ctk.CTkFrame):
             font_pill,
             text="A-",
             width=32,
-            height=26,
-            font=ui_font(11, "bold"),
+            height=24,
+            font=ui_font(11, "semibold"),
             command=self._decrease_font,
             fg_color="transparent",
             hover_color=SECONDARY_BTN_HOVER,
             text_color=TEXT_MAIN,
-            corner_radius=7,
+            corner_radius=6,
         )
         self.btn_font_dec.pack(side="left", padx=(2, 0), pady=2)
 
         self.font_size_lbl = ctk.CTkLabel(
             font_pill,
             text=f"{self._font_size}",
-            width=26,
+            width=24,
             font=mono_font(11, "bold"),
             text_color=TEXT_MUTED,
         )
@@ -192,13 +192,13 @@ class TextPanel(ctk.CTkFrame):
             font_pill,
             text="A+",
             width=32,
-            height=26,
-            font=ui_font(11, "bold"),
+            height=24,
+            font=ui_font(11, "semibold"),
             command=self._increase_font,
             fg_color="transparent",
             hover_color=SECONDARY_BTN_HOVER,
             text_color=TEXT_MAIN,
-            corner_radius=7,
+            corner_radius=6,
         )
         self.btn_font_inc.pack(side="left", padx=(0, 2), pady=2)
 
@@ -210,64 +210,67 @@ class TextPanel(ctk.CTkFrame):
             initial="Metin",
             bg_token=CARD_BG,
         )
-        self.tab_bar.grid(row=1, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="ew")
+        self.tab_bar.grid(row=1, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
         self.tab_buttons = self.tab_bar.buttons
 
-        # ── 3. İki Kümeli Sade Araç Çubuğu (Lucide İkonlu, Emojisiz) ──
+        # ── 3. Çerçevesiz Sade Araç Çubuğu ──
         toolbar = ctk.CTkFrame(self, fg_color="transparent")
-        toolbar.grid(row=2, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="ew")
+        toolbar.grid(row=2, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
 
-        self._ic_copy = get_icon("copy", size=14, color=TEXT_MAIN)
-        self._ic_check = get_icon("check", size=14, color=SUCCESS_COLOR)
-        self._ic_txt = get_icon("file-down", size=14, color=TEXT_MAIN)
-        self._ic_export = get_icon("file-output", size=14, color=TEXT_MAIN)
-        self._ic_mp3 = get_icon("download", size=14, color=TEXT_MAIN)
-        self._ic_summary = get_icon("sparkles", size=14, color=AI_BTN_TEXT)
-        self._ic_enhance = get_icon("wand-sparkles", size=14, color=AI_BTN_TEXT)
-        self._ic_clear = get_icon("trash", size=14, color=TEXT_MUTED)
+        self._ic_copy = get_icon("copy", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_check = get_icon("check", size=14, color=SUCCESS_COLOR, stroke_width=1.5)
+        self._ic_txt = get_icon("file-down", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_export = get_icon("file-output", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_mp3 = get_icon("download", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_summary = get_icon("file-text", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_enhance = get_icon("type", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_clear = get_icon("trash", size=14, color=TEXT_MUTED, stroke_width=1.5)
 
         # Sol küme: Belge & Dışa Aktarma
         self.copy_btn = self._make_tool_btn(toolbar, " Kopyala", self._copy_to_clipboard, icon=self._ic_copy)
         self.copy_btn.pack(side="left", padx=(0, 4))
 
         self.save_txt_btn = self._make_tool_btn(toolbar, " TXT", self._save_as_txt, icon=self._ic_txt)
-        self.save_txt_btn.pack(side="left", padx=3)
+        self.save_txt_btn.pack(side="left", padx=2)
 
         self.export_doc_btn = self._make_tool_btn(
             toolbar, " Dışa aktar", self._export_document, icon=self._ic_export
         )
-        self.export_doc_btn.pack(side="left", padx=3)
+        self.export_doc_btn.pack(side="left", padx=2)
 
         self.export_mp3_btn = self._make_tool_btn(toolbar, " MP3", self._export_audio, icon=self._ic_mp3)
-        self.export_mp3_btn.pack(side="left", padx=3)
+        self.export_mp3_btn.pack(side="left", padx=2)
 
-        # Sağ küme: Temizle + AI Stüdyo Araçları
+        ctk.CTkFrame(toolbar, width=1, height=16, fg_color=DIVIDER_COLOR).pack(
+            side="left", padx=8, pady=6
+        )
+
+        # Sağ küme: Temizle + Metin İşlemleri
         self.clear_btn = ctk.CTkButton(
             toolbar,
             text="",
             image=self._ic_clear,
-            width=32,
-            height=30,
+            width=28,
+            height=28,
             fg_color="transparent",
-            border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
+            border_width=0,
             hover_color=STOP_BTN_HOVER,
-            corner_radius=8,
+            corner_radius=6,
             command=self._clear_active_text,
         )
-        self.clear_btn.pack(side="right", padx=(6, 0))
+        self.clear_btn.pack(side="right", padx=(4, 0))
 
         self.enhance_btn = self._make_tool_btn(
-            toolbar, " Düzelt", self._handle_enhance, icon=self._ic_enhance, accent_soft=True
+            toolbar, " Düzelt", self._handle_enhance, icon=self._ic_enhance
         )
-        self.enhance_btn.pack(side="right", padx=3)
+        self.enhance_btn.pack(side="right", padx=2)
 
         self.summary_btn = self._make_tool_btn(
-            toolbar, " Özetle", self._handle_summarize, icon=self._ic_summary, accent_soft=True
+            toolbar, " Özetle", self._handle_summarize, icon=self._ic_summary
         )
-        self.summary_btn.pack(side="right", padx=3)
+        self.summary_btn.pack(side="right", padx=2)
 
-        # ── 4. Editoryal İç Metin Havuzu + Üst Parıltı Şeridi ──
+        # ── 4. Editoryal İç Metin Havuzu + Üst İlerleme Şeridi ──
         self.content_frame = ctk.CTkFrame(
             self,
             corner_radius=RADIUS_INNER,
@@ -275,14 +278,14 @@ class TextPanel(ctk.CTkFrame):
             border_width=1,
             border_color=CARD_BORDER,
         )
-        self.content_frame.grid(row=3, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="nsew")
+        self.content_frame.grid(row=3, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="nsew")
         self.content_frame.grid_rowconfigure(0, weight=0)
         self.content_frame.grid_rowconfigure(1, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
 
-        # Canlı AI ilerleme şeridi
-        self.progress_ribbon = AcousticProgressRibbon(self.content_frame, bg_token=INNER_BG, height=3)
-        self.progress_ribbon.grid(row=0, column=0, sticky="ew", padx=6, pady=(3, 0))
+        # Canlı ilerleme şeridi
+        self.progress_ribbon = AcousticProgressRibbon(self.content_frame, bg_token=INNER_BG, height=2)
+        self.progress_ribbon.grid(row=0, column=0, sticky="ew", padx=8, pady=(4, 0))
 
         self.ocr_textbox = self._make_textbox(
             "Görselden okunan veya belgeden çıkarılan metin burada görüntülenir.\n\n"
@@ -295,30 +298,29 @@ class TextPanel(ctk.CTkFrame):
         self.trans_container.grid_columnconfigure(0, weight=1)
 
         trans_top_bar = ctk.CTkFrame(self.trans_container, fg_color="transparent")
-        trans_top_bar.grid(row=0, column=0, padx=8, pady=(6, 4), sticky="ew")
+        trans_top_bar.grid(row=0, column=0, padx=8, pady=(8, 4), sticky="ew")
         trans_top_bar.grid_columnconfigure(0, weight=1)
 
         self.detected_lang_lbl = ctk.CTkLabel(
             trans_top_bar,
             text="Algılanan dil: Otomatik",
-            font=ui_font(11, "semibold"),
-            text_color=ACCENT_SOFT_TEXT,
-            fg_color=ACCENT_SOFT_BG,
-            corner_radius=8,
-            padx=10,
-            pady=3,
+            font=ui_font(11),
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+            padx=4,
+            pady=2,
         )
         self.detected_lang_lbl.grid(row=0, column=0, sticky="w")
 
-        self._ic_split_idle = get_icon("columns-2", size=14, color=TEXT_MAIN)
-        self._ic_split_active = get_icon("columns-2", size=14, color=ACCENT_TEXT)
+        self._ic_split_idle = get_icon("columns-2", size=14, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_split_active = get_icon("columns-2", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
 
         self.side_by_side_btn = ctk.CTkButton(
             trans_top_bar,
             text=" Yan yana",
             image=self._ic_split_idle,
             compound="left",
-            width=98,
+            width=96,
             height=28,
             font=ui_font(11, "semibold"),
             fg_color=SECONDARY_BTN,
@@ -339,7 +341,7 @@ class TextPanel(ctk.CTkFrame):
         self.orig_side_panel = ctk.CTkFrame(
             self.trans_split_frame,
             fg_color=CARD_BG,
-            corner_radius=10,
+            corner_radius=8,
             border_width=1,
             border_color=CARD_BORDER,
         )
@@ -359,7 +361,7 @@ class TextPanel(ctk.CTkFrame):
         )
         self.trans_textbox.grid(row=0, column=0, sticky="nsew")
 
-        self.summary_textbox = self._make_textbox("Yapay zeka özeti bu alanda görüntülenir.")
+        self.summary_textbox = self._make_textbox("Belge özeti bu alanda görüntülenir.")
 
         # Soru-Cevap görünümü
         self.qa_container = ctk.CTkFrame(self.content_frame, fg_color="transparent")
@@ -372,7 +374,7 @@ class TextPanel(ctk.CTkFrame):
 
         self.qa_entry = ctk.CTkEntry(
             qa_bar,
-            placeholder_text="Bu belge hakkında ne öğrenmek istersiniz? (Örn: Ana fikir nedir?)",
+            placeholder_text="Belge hakkında soru sor",
             height=36,
             font=ui_font(12),
             fg_color=CARD_BG,
@@ -381,22 +383,22 @@ class TextPanel(ctk.CTkFrame):
             placeholder_text_color=TEXT_MUTED,
             corner_radius=RADIUS_BTN,
         )
-        self.qa_entry.grid(row=0, column=0, padx=(0, 6), sticky="ew")
+        self.qa_entry.grid(row=0, column=0, padx=(0, 8), sticky="ew")
         self.qa_entry.bind("<Return>", lambda _e: self._handle_ask_question())
 
-        self._ic_send = get_icon("send", size=14, color=ACCENT_TEXT)
+        self._ic_send = get_icon("send", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
         self.qa_ask_btn = ctk.CTkButton(
             qa_bar,
             text=" Sor",
             image=self._ic_send,
             compound="left",
-            width=76,
+            width=72,
             height=36,
-            font=ui_font(12, "bold"),
+            font=ui_font(12, "semibold"),
             command=self._handle_ask_question,
-            fg_color=ACCENT_COLOR,
-            text_color=ACCENT_TEXT,
-            hover_color=ACCENT_HOVER,
+            fg_color=PRIMARY_BTN_BG,
+            text_color=PRIMARY_BTN_TEXT,
+            hover_color=PRIMARY_BTN_HOVER,
             corner_radius=RADIUS_BTN,
         )
         self.qa_ask_btn.grid(row=0, column=1)
@@ -407,26 +409,26 @@ class TextPanel(ctk.CTkFrame):
         )
         self.qa_textbox.grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
 
-        self.ocr_textbox.grid(row=1, column=0, sticky="nsew", padx=6, pady=(2, 6))
+        self.ocr_textbox.grid(row=1, column=0, sticky="nsew", padx=8, pady=(4, 8))
 
         # ── 5. Durum ve Tabular İstatistik Satırı ──
         status_bar = ctk.CTkFrame(self, fg_color="transparent")
-        status_bar.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="ew")
+        status_bar.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
         status_bar.grid_columnconfigure(1, weight=1)
 
-        self._ic_status_ok = get_icon("circle-check", size=14, color=SUCCESS_COLOR)
-        self._ic_status_info = get_icon("info", size=14, color=ACCENT_COLOR)
-        self._ic_status_warn = get_icon("info", size=14, color=WARN_COLOR)
-        self._ic_status_err = get_icon("info", size=14, color=STOP_BTN_TEXT)
+        self._ic_status_ok = get_icon("circle-check", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._ic_status_info = get_icon("info", size=14, color=ACCENT_COLOR, stroke_width=1.5)
+        self._ic_status_warn = get_icon("info", size=14, color=WARN_COLOR, stroke_width=1.5)
+        self._ic_status_err = get_icon("info", size=14, color=STOP_BTN_TEXT, stroke_width=1.5)
 
-        self.status_icon_lbl = ctk.CTkLabel(status_bar, text="", image=self._ic_status_ok, width=18)
+        self.status_icon_lbl = ctk.CTkLabel(status_bar, text="", image=self._ic_status_ok, width=16)
         self.status_icon_lbl.grid(row=0, column=0, sticky="w", padx=(0, 6))
 
         self.status_lbl = ctk.CTkLabel(
             status_bar,
             text="Hazır",
-            font=ui_font(12, "semibold"),
-            text_color=SUCCESS_COLOR,
+            font=ui_font(12),
+            text_color=TEXT_MUTED,
             anchor="w",
         )
         self.status_lbl.grid(row=0, column=1, sticky="w")
@@ -442,7 +444,7 @@ class TextPanel(ctk.CTkFrame):
 
         # ── 6. Alt İşlem Satırı: [Hedef dil ▾] [Metni çevir] [Sesli oku] ──
         actions_bar = ctk.CTkFrame(self, fg_color="transparent")
-        actions_bar.grid(row=5, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD - 2), sticky="ew")
+        actions_bar.grid(row=5, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
         actions_bar.grid_columnconfigure(1, weight=1)
         actions_bar.grid_columnconfigure(2, weight=1)
 
@@ -451,13 +453,13 @@ class TextPanel(ctk.CTkFrame):
 
         ctk.CTkLabel(
             lang_box, text="Dil", font=ui_font(12), text_color=TEXT_MUTED
-        ).pack(side="left", padx=(0, 6))
+        ).pack(side="left", padx=(0, 8))
 
         self.lang_dropdown = ctk.CTkOptionMenu(
             lang_box,
             values=self.AVAILABLE_LANGUAGES,
             command=self._on_target_lang_change,
-            width=126,
+            width=124,
             height=BTN_HEIGHT_MAIN,
             font=ui_font(12, "semibold"),
             fg_color=SECONDARY_BTN,
@@ -472,8 +474,8 @@ class TextPanel(ctk.CTkFrame):
         self.lang_dropdown.set(self._last_target_lang)
         self.lang_dropdown.pack(side="left")
 
-        self._ic_translate = get_icon("languages", size=16, color=TEXT_MAIN)
-        self._ic_speak = get_icon("volume-2", size=16, color=ACCENT_TEXT, stroke_width=2.0)
+        self._ic_translate = get_icon("languages", size=16, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_speak = get_icon("volume-2", size=16, color=PRIMARY_BTN_TEXT, stroke_width=1.7)
 
         self.translate_btn = ctk.CTkButton(
             actions_bar,
@@ -498,10 +500,10 @@ class TextPanel(ctk.CTkFrame):
             image=self._ic_speak,
             compound="left",
             height=BTN_HEIGHT_MAIN,
-            font=ui_font(13, "bold"),
-            fg_color=ACCENT_COLOR,
-            text_color=ACCENT_TEXT,
-            hover_color=ACCENT_HOVER,
+            font=ui_font(13, "semibold"),
+            fg_color=PRIMARY_BTN_BG,
+            text_color=PRIMARY_BTN_TEXT,
+            hover_color=PRIMARY_BTN_HOVER,
             corner_radius=RADIUS_BTN,
             command=self._handle_read,
         )
@@ -517,15 +519,14 @@ class TextPanel(ctk.CTkFrame):
             text=text,
             image=icon,
             compound="left",
-            height=30,
+            height=28,
             width=10,
-            font=ui_font(11, "semibold" if accent_soft else "normal"),
-            fg_color=AI_BTN_BG if accent_soft else SECONDARY_BTN,
-            border_width=1,
-            border_color=AI_BTN_BORDER if accent_soft else SECONDARY_BTN_BORDER,
-            text_color=AI_BTN_TEXT if accent_soft else TEXT_MAIN,
-            hover_color=AI_BTN_HOVER if accent_soft else SECONDARY_BTN_HOVER,
-            corner_radius=8,
+            font=ui_font(12),
+            fg_color="transparent",
+            border_width=0,
+            text_color=TEXT_MUTED,
+            hover_color=SECONDARY_BTN,
+            corner_radius=6,
             command=command,
         )
 
@@ -652,10 +653,10 @@ class TextPanel(ctk.CTkFrame):
             self.trans_textbox.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
             self.side_by_side_btn.configure(
                 image=self._ic_split_active,
-                fg_color=ACCENT_COLOR,
-                text_color=ACCENT_TEXT,
-                border_color=ACCENT_COLOR,
-                hover_color=ACCENT_HOVER,
+                fg_color=PRIMARY_BTN_BG,
+                text_color=PRIMARY_BTN_TEXT,
+                border_color=PRIMARY_BTN_BG,
+                hover_color=PRIMARY_BTN_HOVER,
             )
         else:
             self.trans_split_frame.grid_columnconfigure(0, weight=1)
@@ -763,7 +764,7 @@ class TextPanel(ctk.CTkFrame):
         elif raw.startswith("⏳") or raw.startswith("🔊") or raw.startswith("🌙"):
             col, icon = ACCENT_COLOR, self._ic_status_info
         else:
-            col, icon = SUCCESS_COLOR, self._ic_status_ok
+            col, icon = TEXT_MUTED, self._ic_status_ok
 
         clean = _EMOJI_PREFIX_RE.sub("", raw).strip() or "Hazır"
         self.status_icon_lbl.configure(image=icon)
@@ -905,7 +906,7 @@ class TextPanel(ctk.CTkFrame):
     def _reset_copy_btn(self) -> None:
         self._copy_reset_after = None
         if self.winfo_exists():
-            self.copy_btn.configure(image=self._ic_copy, text=" Kopyala", text_color=TEXT_MAIN)
+            self.copy_btn.configure(image=self._ic_copy, text=" Kopyala", text_color=TEXT_MUTED)
 
     def _save_as_txt(self) -> None:
         text = self.get_active_text()

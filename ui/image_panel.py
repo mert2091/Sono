@@ -37,6 +37,7 @@ from ui.theme import (
     SECONDARY_BTN_HOVER,
     TEXT_MAIN,
     TEXT_MUTED,
+    TEXT_SUBTLE,
     mono_font,
     ui_font,
 )
@@ -101,8 +102,8 @@ class ImagePanel(ctk.CTkFrame):
 
         title_lbl = ctk.CTkLabel(
             header_frame,
-            text="Belge Sahnesi",
-            font=ui_font(15, "bold"),
+            text="Belge",
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
             anchor="w",
         )
@@ -113,10 +114,9 @@ class ImagePanel(ctk.CTkFrame):
             text="Dosya bekleniyor",
             font=mono_font(11),
             text_color=TEXT_MUTED,
-            fg_color=SECONDARY_BTN,
-            corner_radius=8,
-            padx=10,
-            pady=3,
+            fg_color="transparent",
+            padx=0,
+            pady=2,
         )
         self.info_lbl.grid(row=0, column=1, sticky="e")
 
@@ -127,34 +127,31 @@ class ImagePanel(ctk.CTkFrame):
             border_width=0,
             fg_color=INNER_BG,
         )
-        self.drop_frame.grid(row=1, column=0, padx=PADDING_CARD, pady=(0, 14), sticky="nsew")
+        self.drop_frame.grid(row=1, column=0, padx=PADDING_CARD, pady=(0, 12), sticky="nsew")
         self.drop_frame.grid_rowconfigure(0, weight=1)
         self.drop_frame.grid_columnconfigure(0, weight=1)
 
-        # Animasyonlu arka plan (kesik çerçeve + hover akustik halkaları + OCR tarama ışını)
+        # Arka plan (kesik çerçeve + canlı OCR tarama çizgisi)
         self._backdrop = StudioDropzoneBackdrop(self.drop_frame, bg_token=INNER_BG)
         self._backdrop.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         self.placeholder_box = ctk.CTkFrame(self.drop_frame, fg_color="transparent")
-        self.placeholder_box.grid(row=0, column=0, padx=18, pady=18)
+        self.placeholder_box.grid(row=0, column=0, padx=16, pady=16)
 
-        # Upload İkon Rozeti
-        self._upload_icon = get_icon("cloud-upload", size=24, color=ACCENT_SOFT_TEXT, stroke_width=1.85)
+        # Sade Upload İkonu
+        self._upload_icon = get_icon("cloud-upload", size=24, color=TEXT_MUTED, stroke_width=1.5)
         self.upload_icon_lbl = ctk.CTkLabel(
             self.placeholder_box,
             text="",
             image=self._upload_icon,
-            width=54,
-            height=54,
-            corner_radius=16,
-            fg_color=ACCENT_SOFT_BG,
+            fg_color="transparent",
         )
-        self.upload_icon_lbl.pack(pady=(0, 14))
+        self.upload_icon_lbl.pack(pady=(0, 12))
 
         self.drop_text_main = ctk.CTkLabel(
             self.placeholder_box,
             text="Görsel veya belgeyi bırak",
-            font=ui_font(15, "bold"),
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
         )
         self.drop_text_main.pack(pady=(0, 4))
@@ -165,26 +162,17 @@ class ImagePanel(ctk.CTkFrame):
             font=ui_font(12),
             text_color=TEXT_MUTED,
         )
-        self.drop_text_sub.pack(pady=(0, 16))
+        self.drop_text_sub.pack(pady=(0, 12))
 
-        # Monospace Format Çipleri
-        formats_box = ctk.CTkFrame(self.placeholder_box, fg_color="transparent")
-        formats_box.pack()
+        # Sessiz Format Listesi
+        ctk.CTkLabel(
+            self.placeholder_box,
+            text="PNG · JPG · PDF · PPTX · DOCX",
+            font=mono_font(11),
+            text_color=TEXT_SUBTLE,
+        ).pack()
 
-        for fmt in ["PNG", "JPG", "PDF", "PPTX", "DOCX"]:
-            pill = ctk.CTkLabel(
-                formats_box,
-                text=fmt,
-                font=mono_font(10, "bold"),
-                text_color=TEXT_MUTED,
-                fg_color=SECONDARY_BTN,
-                corner_radius=6,
-                padx=8,
-                pady=3,
-            )
-            pill.pack(side="left", padx=3)
-
-        # Tıklayınca dosya seçici aç + Hover akustik halka tetikleyici
+        # Tıklayınca dosya seçici aç + Hover çerçeve vurgusu
         for clickable in (
             self.drop_frame,
             self._backdrop,
@@ -202,28 +190,25 @@ class ImagePanel(ctk.CTkFrame):
         # Görsel önizleme etiketi
         self.preview_image_lbl = ctk.CTkLabel(self.drop_frame, text="", fg_color="transparent")
 
-        # Belge (PDF/DOCX/PPTX) yüklendiğinde gösterilen temiz özet kartı
-        self._doc_icon = get_icon("file-text", size=28, color=ACCENT_SOFT_TEXT, stroke_width=1.8)
+        # Belge (PDF/DOCX/PPTX) yüklendiğinde gösterilen sade özet
+        self._doc_icon = get_icon("file-text", size=24, color=TEXT_MUTED, stroke_width=1.5)
         self.doc_state_box = ctk.CTkFrame(self.drop_frame, fg_color="transparent")
         self.doc_icon_badge = ctk.CTkLabel(
             self.doc_state_box,
             text="",
             image=self._doc_icon,
-            width=58,
-            height=58,
-            corner_radius=16,
-            fg_color=ACCENT_SOFT_BG,
+            fg_color="transparent",
         )
         self.doc_icon_badge.pack(pady=(0, 12))
         self.doc_title_lbl = ctk.CTkLabel(
             self.doc_state_box,
             text="",
-            font=ui_font(14, "bold"),
+            font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
             wraplength=280,
             justify="center",
         )
-        self.doc_title_lbl.pack(pady=(0, 6))
+        self.doc_title_lbl.pack(pady=(0, 4))
         self.doc_hint_lbl = ctk.CTkLabel(
             self.doc_state_box,
             text="",
@@ -247,8 +232,8 @@ class ImagePanel(ctk.CTkFrame):
             text="Önceki",
             image=self._prev_icon,
             compound="left",
-            width=86,
-            height=30,
+            width=84,
+            height=32,
             font=ui_font(12),
             command=self._prev_page,
             fg_color=SECONDARY_BTN,
@@ -273,8 +258,8 @@ class ImagePanel(ctk.CTkFrame):
             text="Sonraki",
             image=self._next_icon,
             compound="right",
-            width=86,
-            height=30,
+            width=84,
+            height=32,
             font=ui_font(12),
             command=self._next_page,
             fg_color=SECONDARY_BTN,
@@ -287,13 +272,13 @@ class ImagePanel(ctk.CTkFrame):
         self.next_page_btn.grid(row=0, column=2, padx=(4, 0))
         self.pagination_frame.grid_remove()
 
-        # ── 4. Ana Eylemler: Dosya Aç (Vurgu) & Yapıştır (İkincil) ──
+        # ── 4. Ana Eylemler: Dosya Aç & Yapıştır (İkincil) ──
         actions_frame = ctk.CTkFrame(self, fg_color="transparent")
-        actions_frame.grid(row=3, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="ew")
+        actions_frame.grid(row=3, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
         actions_frame.grid_columnconfigure((0, 1), weight=1)
 
-        self._open_icon = get_icon("folder-open", size=16, color=ACCENT_TEXT, stroke_width=2.0)
-        self._paste_icon = get_icon("clipboard-paste", size=16, color=TEXT_MAIN, stroke_width=1.9)
+        self._open_icon = get_icon("folder-open", size=16, color=TEXT_MAIN, stroke_width=1.5)
+        self._paste_icon = get_icon("clipboard-paste", size=16, color=TEXT_MAIN, stroke_width=1.5)
 
         self.file_btn = ctk.CTkButton(
             actions_frame,
@@ -302,13 +287,15 @@ class ImagePanel(ctk.CTkFrame):
             compound="left",
             command=self._open_file_dialog,
             height=BTN_HEIGHT_MAIN,
-            font=ui_font(13, "bold"),
-            fg_color=ACCENT_COLOR,
-            text_color=ACCENT_TEXT,
-            hover_color=ACCENT_HOVER,
+            font=ui_font(13, "semibold"),
+            fg_color=SECONDARY_BTN,
+            border_width=1,
+            border_color=SECONDARY_BTN_BORDER,
+            text_color=TEXT_MAIN,
+            hover_color=SECONDARY_BTN_HOVER,
             corner_radius=RADIUS_BTN,
         )
-        self.file_btn.grid(row=0, column=0, padx=(0, 6), sticky="ew")
+        self.file_btn.grid(row=0, column=0, padx=(0, 4), sticky="ew")
 
         self.paste_btn = ctk.CTkButton(
             actions_frame,
@@ -325,16 +312,16 @@ class ImagePanel(ctk.CTkFrame):
             hover_color=SECONDARY_BTN_HOVER,
             corner_radius=RADIUS_BTN,
         )
-        self.paste_btn.grid(row=0, column=1, padx=(6, 0), sticky="ew")
+        self.paste_btn.grid(row=0, column=1, padx=(4, 0), sticky="ew")
 
         # ── 5. Görsel Yardımcı Araçları (Lucide ikonlu, çerçevesiz) ──
         tools_frame = ctk.CTkFrame(self, fg_color="transparent")
-        tools_frame.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD - 2), sticky="ew")
+        tools_frame.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
         tools_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-        self._rot_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED)
-        self._crop_icon = get_icon("crop", size=14, color=TEXT_MUTED)
-        self._trash_icon = get_icon("trash", size=14, color=TEXT_MUTED)
+        self._rot_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._crop_icon = get_icon("crop", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._trash_icon = get_icon("trash", size=14, color=TEXT_MUTED, stroke_width=1.5)
 
         self.rotate_btn = ctk.CTkButton(
             tools_frame,
@@ -342,7 +329,7 @@ class ImagePanel(ctk.CTkFrame):
             image=self._rot_icon,
             compound="left",
             command=self._rotate_current_image,
-            height=30,
+            height=32,
             font=ui_font(12),
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
@@ -358,7 +345,7 @@ class ImagePanel(ctk.CTkFrame):
             image=self._crop_icon,
             compound="left",
             command=self._open_crop_window,
-            height=30,
+            height=32,
             font=ui_font(12),
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
@@ -374,7 +361,7 @@ class ImagePanel(ctk.CTkFrame):
             image=self._trash_icon,
             compound="left",
             command=self.clear_image,
-            height=30,
+            height=32,
             font=ui_font(12),
             fg_color="transparent",
             hover_color=SECONDARY_BTN,
@@ -392,13 +379,13 @@ class ImagePanel(ctk.CTkFrame):
         if active:
             self.info_lbl.configure(
                 text="Gemini okuyor…",
-                fg_color=ACCENT_SOFT_BG,
+                fg_color="transparent",
                 text_color=ACCENT_SOFT_TEXT,
             )
         elif self._current_image is not None:
             self.info_lbl.configure(
                 text=get_image_info(self._current_image),
-                fg_color=SECONDARY_BTN,
+                fg_color="transparent",
                 text_color=TEXT_MUTED,
             )
 
@@ -440,7 +427,7 @@ class ImagePanel(ctk.CTkFrame):
             return
         self._is_loading_doc = True
         self.info_lbl.configure(
-            text="Yükleniyor…", fg_color=ACCENT_SOFT_BG, text_color=ACCENT_SOFT_TEXT
+            text="Yükleniyor…", fg_color="transparent", text_color=ACCENT_SOFT_TEXT
         )
         self.file_btn.configure(state="disabled")
         self.paste_btn.configure(state="disabled")
@@ -477,8 +464,8 @@ class ImagePanel(ctk.CTkFrame):
 
         self.info_lbl.configure(
             text=f"{len(self._doc_pages)} Sayfa",
-            fg_color=ACCENT_SOFT_BG,
-            text_color=ACCENT_SOFT_TEXT,
+            fg_color="transparent",
+            text_color=TEXT_MUTED,
         )
         self.remove_btn.configure(state="normal")
         self.rotate_btn.configure(state="disabled")
@@ -489,7 +476,7 @@ class ImagePanel(ctk.CTkFrame):
         self._backdrop.set_scanning(False)
         self.file_btn.configure(state="normal")
         self.paste_btn.configure(state="normal")
-        self.info_lbl.configure(text="Açılamadı", fg_color=SECONDARY_BTN, text_color=TEXT_MUTED)
+        self.info_lbl.configure(text="Açılamadı", fg_color="transparent", text_color=TEXT_MUTED)
         self._show_doc_state(
             "Belge açılamadı",
             "Dosyanın bozuk veya şifreli olmadığından emin olup tekrar deneyin.\n"
@@ -601,7 +588,7 @@ class ImagePanel(ctk.CTkFrame):
     def _set_image(self, image: Image.Image, trigger_callback: bool = True) -> None:
         self._current_image = image
         self.info_lbl.configure(
-            text=get_image_info(image), fg_color=SECONDARY_BTN, text_color=TEXT_MUTED
+            text=get_image_info(image), fg_color="transparent", text_color=TEXT_MUTED
         )
 
         preview = resize_for_preview(image, max_width=360, max_height=380)
@@ -632,10 +619,10 @@ class ImagePanel(ctk.CTkFrame):
 
         self.preview_image_lbl.grid_remove()
         self.doc_state_box.grid_remove()
-        self.placeholder_box.grid(row=0, column=0, padx=18, pady=18)
+        self.placeholder_box.grid(row=0, column=0, padx=16, pady=16)
 
         self.info_lbl.configure(
-            text="Dosya bekleniyor", fg_color=SECONDARY_BTN, text_color=TEXT_MUTED
+            text="Dosya bekleniyor", fg_color="transparent", text_color=TEXT_MUTED
         )
         self.rotate_btn.configure(state="disabled")
         self.crop_btn.configure(state="disabled")
