@@ -90,6 +90,7 @@ class TextPanel(ctk.CTkFrame):
         on_enhance: Optional[Callable[[], None]] = None,
         on_ask_question: Optional[Callable[[str], None]] = None,
         on_jump_to_offset: Optional[Callable[[int], None]] = None,
+        settings=None,
         **kwargs,
     ):
         super().__init__(
@@ -107,16 +108,33 @@ class TextPanel(ctk.CTkFrame):
         self._on_enhance = on_enhance
         self._on_ask_question = on_ask_question
         self._on_jump_to_offset = on_jump_to_offset
+        self.settings = settings
 
-        self._font_size = 14
+        saved_font = 14
+        saved_lang = "Türkçe"
+        saved_side_by_side = False
+        if self.settings:
+            try:
+                f_val = int(self.settings.get_studio("font_size", 14))
+                saved_font = max(10, min(28, f_val))
+            except (TypeError, ValueError):
+                saved_font = 14
+            l_val = self.settings.get_studio("target_lang", "Türkçe")
+            if l_val in self.AVAILABLE_LANGUAGES:
+                saved_lang = l_val
+            saved_side_by_side = bool(self.settings.get_studio("side_by_side", False))
+
+        self._font_size = saved_font
         self._active_tab = "Metin"
         self._side_by_side = False
         self._detected_lang = "Otomatik"
-        self._last_target_lang = "Türkçe"
+        self._last_target_lang = saved_lang
         self._copy_reset_after: Optional[str] = None
         self._last_hl_state: Optional[tuple] = None
 
         self._setup_ui()
+        if saved_side_by_side:
+            self._set_side_by_side(True, save=False)
         register_theme_listener(self._on_theme_change)
         self.bind("<Destroy>", self._on_destroy, add="+")
 
@@ -438,6 +456,7 @@ class TextPanel(ctk.CTkFrame):
         self.lang_dropdown = ctk.CTkOptionMenu(
             lang_box,
             values=self.AVAILABLE_LANGUAGES,
+            command=self._on_target_lang_change,
             width=126,
             height=BTN_HEIGHT_MAIN,
             font=ui_font(12, "semibold"),
@@ -450,7 +469,7 @@ class TextPanel(ctk.CTkFrame):
             text_color=TEXT_MAIN,
             corner_radius=RADIUS_BTN,
         )
-        self.lang_dropdown.set("Türkçe")
+        self.lang_dropdown.set(self._last_target_lang)
         self.lang_dropdown.pack(side="left")
 
         self._ic_translate = get_icon("languages", size=16, color=TEXT_MAIN)
@@ -618,7 +637,10 @@ class TextPanel(ctk.CTkFrame):
         self._update_stats()
 
     def _toggle_side_by_side(self) -> None:
-        self._side_by_side = not self._side_by_side
+        self._set_side_by_side(not self._side_by_side, save=True)
+
+    def _set_side_by_side(self, enabled: bool, save: bool = True) -> None:
+        self._side_by_side = bool(enabled)
         self.orig_side_panel.grid_forget()
         self.trans_textbox.grid_forget()
 
@@ -646,6 +668,13 @@ class TextPanel(ctk.CTkFrame):
                 border_color=SECONDARY_BTN_BORDER,
                 hover_color=SECONDARY_BTN_HOVER,
             )
+        if save and self.settings:
+            self.settings.set_studio("side_by_side", self._side_by_side)
+
+    def _on_target_lang_change(self, lang: str) -> None:
+        self._last_target_lang = lang
+        if self.settings:
+            self.settings.set_studio("target_lang", lang)
 
     def _sync_orig_side_panel(self) -> None:
         orig = self.get_ocr_text()
@@ -774,6 +803,8 @@ class TextPanel(ctk.CTkFrame):
         ):
             tb.configure(font=normal_font)
             self._setup_bold_tag(tb)
+        if self.settings:
+            self.settings.set_studio("font_size", self._font_size)
 
     # ── Eylemler ─────────────────────────────────────────────────
 

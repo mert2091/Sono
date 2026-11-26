@@ -63,6 +63,16 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
         "theme": "dark",
         "export_dir": "",
     },
+    "audio": {
+        "voice": "tr-TR-EmelNeural",
+        "speed": 1.0,
+        "volume": 100,
+    },
+    "studio": {
+        "target_lang": "Türkçe",
+        "side_by_side": False,
+        "font_size": 14,
+    },
 }
 
 
@@ -173,6 +183,20 @@ class SettingsService:
 
     def set_general(self, key: str, value: Any) -> None:
         self.data["general"][key] = value
+        self.save()
+
+    def get_audio(self, key: str, default: Any = None) -> Any:
+        return self.data.setdefault("audio", {}).get(key, default)
+
+    def set_audio(self, key: str, value: Any) -> None:
+        self.data.setdefault("audio", {})[key] = value
+        self.save()
+
+    def get_studio(self, key: str, default: Any = None) -> Any:
+        return self.data.setdefault("studio", {}).get(key, default)
+
+    def set_studio(self, key: str, value: Any) -> None:
+        self.data.setdefault("studio", {})[key] = value
         self.save()
 
 

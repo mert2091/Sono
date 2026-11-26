@@ -45,7 +45,17 @@ from ui.theme import (
 class AudioPanel(ctk.CTkFrame):
     """Hi-Fi Stüdyo Medya Oynatıcı Konsolu."""
 
-    def __init__(self, master, tts_service: TTSService, on_stop=None, **kwargs):
+    SPEED_OPTIONS: list[tuple[str, float]] = [
+        ("0.5x", 0.5),
+        ("0.75x", 0.75),
+        ("1.0x", 1.0),
+        ("1.25x", 1.25),
+        ("1.5x", 1.5),
+        ("1.75x", 1.75),
+        ("2.0x", 2.0),
+    ]
+
+    def __init__(self, master, tts_service: TTSService, on_stop=None, settings=None, **kwargs):
         super().__init__(
             master,
             corner_radius=RADIUS_CARD,
@@ -56,9 +66,12 @@ class AudioPanel(ctk.CTkFrame):
         )
         self.tts = tts_service
         self._on_stop_cb = on_stop
+        self.settings = settings
         self._is_seeking = False
         self._total_est_sec = 0
         self._last_nonzero_vol = 100
+        self._vol_save_after = None
+        self._speed_map = dict(self.SPEED_OPTIONS)
 
         # Çift temalı Lucide ikonları
         self._ic_prev = get_icon("skip-back", size=16, color=TEXT_MAIN)
@@ -72,6 +85,7 @@ class AudioPanel(ctk.CTkFrame):
         self._ic_sleep_wait = get_icon("moon-star", size=13, color=ACCENT_SOFT_TEXT)
 
         self._setup_ui()
+        self._restore_saved_settings()
 
     def _setup_ui(self) -> None:
         self.grid_columnconfigure(2, weight=1)  # Orta ilerleme çubuğu esnesin
@@ -208,38 +222,30 @@ class AudioPanel(ctk.CTkFrame):
             pady=4,
         )
 
-        # Hız
+        # Hız Seçici (Tek tıkla açılan hız kutusu)
         self._speed_lbl = ctk.CTkLabel(
             right_frame, text="Hız", font=ui_font(11), text_color=TEXT_MUTED
         )
-        self._speed_lbl.pack(side="left", padx=(0, 5))
+        self._speed_lbl.pack(side="left", padx=(0, 6))
 
-        self.speed_slider = ctk.CTkSlider(
+        self.speed_dropdown = ctk.CTkOptionMenu(
             right_frame,
-            from_=50,
-            to=200,
-            number_of_steps=15,
-            width=66,
-            progress_color=ACCENT_COLOR,
-            button_color=TEXT_MAIN,
-            button_hover_color=ACCENT_HOVER,
-            button_length=0,
-            button_corner_radius=7,
-            fg_color=SLIDER_TRACK,
+            values=[label for label, _ in self.SPEED_OPTIONS],
             command=self._on_speed_change,
-            height=13,
-        )
-        self.speed_slider.set(100)
-        self.speed_slider.pack(side="left", padx=2)
-
-        self.speed_val_lbl = ctk.CTkLabel(
-            right_frame,
-            text="1.0x",
-            font=mono_font(11, "bold"),
+            width=86,
+            height=34,
+            font=mono_font(12, "bold"),
+            fg_color=SECONDARY_BTN,
+            button_color=SECONDARY_BTN_BORDER,
+            button_hover_color=SECONDARY_BTN_HOVER,
+            dropdown_fg_color=CARD_BG,
+            dropdown_hover_color=SECONDARY_BTN,
+            dropdown_text_color=TEXT_MAIN,
             text_color=TEXT_MAIN,
-            width=34,
+            corner_radius=RADIUS_BTN,
         )
-        self.speed_val_lbl.pack(side="left", padx=(0, 10))
+        self.speed_dropdown.set("1.0x")
+        self.speed_dropdown.pack(side="left", padx=(0, 10))
 
         # Ses / Sessize Al
         self.mute_btn = ctk.CTkButton(
@@ -271,6 +277,7 @@ class AudioPanel(ctk.CTkFrame):
             height=13,
         )
         self.vol_slider.set(100)
+        self.vol_slider.bind("<ButtonRelease-1>", self._on_volume_release)
         self.vol_slider.pack(side="left", padx=(0, 12))
 
         # Ses Seçici
@@ -338,12 +345,61 @@ class AudioPanel(ctk.CTkFrame):
     def _next_paragraph(self) -> None:
         self.tts.next_paragraph()
 
-    def _on_speed_change(self, value: float) -> None:
-        rate = int(value)
-        speed_f = rate / 100.0
-        self.speed_val_lbl.configure(text=f"{speed_f:.1f}x")
+    def _speed_to_label(self, speed_f: float) -> str:
+        closest_label, _ = min(
+            self.SPEED_OPTIONS, key=lambda item: abs(item[1] - speed_f)
+        )
+        return closest_label
+
+    def _restore_saved_settings(self) -> None:
+        if not self.settings:
+            return
+
+        # 1) Kayıtlı ses
+        saved_voice = self.settings.get_audio("voice", "tr-TR-EmelNeural")
+        display_voice = next(
+            (disp for disp, raw in self.voice_map.items() if raw == saved_voice),
+            None,
+        )
+        if display_voice is None and saved_voice in self.voice_map:
+            display_voice = saved_voice
+            saved_voice = self.voice_map[display_voice]
+        if display_voice:
+            self.voice_dropdown.set(display_voice)
+            self.tts._voice = saved_voice
+
+        # 2) Kayıtlı hız
+        try:
+            saved_speed = float(self.settings.get_audio("speed", 1.0))
+        except (TypeError, ValueError):
+            saved_speed = 1.0
+        speed_label = self._speed_to_label(saved_speed)
+        speed_val = self._speed_map[speed_label]
+        self.speed_dropdown.set(speed_label)
+        self.waveform.set_playback_params(speed=speed_val)
+        self.tts.set_rate(int(round((speed_val - 1.0) * 100)))
+
+        # 3) Kayıtlı ses seviyesi
+        try:
+            saved_vol = int(round(float(self.settings.get_audio("volume", 100))))
+        except (TypeError, ValueError):
+            saved_vol = 100
+        saved_vol = max(0, min(100, saved_vol))
+        if saved_vol > 0:
+            self._last_nonzero_vol = saved_vol
+        self.vol_slider.set(saved_vol)
+        self.mute_btn.configure(
+            image=self._vol_icon_on if saved_vol > 0 else self._vol_icon_mute
+        )
+        self.waveform.set_playback_params(volume=saved_vol / 100.0)
+        self.tts.set_volume(saved_vol / 100.0)
+
+    def _on_speed_change(self, speed_label: str) -> None:
+        speed_f = self._speed_map.get(speed_label, 1.0)
         self.waveform.set_playback_params(speed=speed_f)
-        self.tts.set_rate(rate - 100)
+        self.tts.set_rate(int(round((speed_f - 1.0) * 100)))
+        if self.settings:
+            self.settings.set_audio("speed", speed_f)
 
     def _toggle_mute(self) -> None:
         cur = int(round(self.vol_slider.get()))
@@ -351,10 +407,25 @@ class AudioPanel(ctk.CTkFrame):
             self._last_nonzero_vol = cur
             self.vol_slider.set(0)
             self._on_volume_change(0)
+            self._save_volume_now(0)
         else:
             restore = self._last_nonzero_vol if self._last_nonzero_vol > 0 else 100
             self.vol_slider.set(restore)
             self._on_volume_change(restore)
+            self._save_volume_now(restore)
+
+    def _save_volume_now(self, vol: int) -> None:
+        if self._vol_save_after is not None:
+            try:
+                self.after_cancel(self._vol_save_after)
+            except Exception:
+                pass
+            self._vol_save_after = None
+        if self.settings:
+            self.settings.set_audio("volume", max(0, min(100, int(vol))))
+
+    def _on_volume_release(self, _event=None) -> None:
+        self._save_volume_now(int(round(self.vol_slider.get())))
 
     def _on_volume_change(self, value: float) -> None:
         vol = int(round(value))
@@ -365,10 +436,21 @@ class AudioPanel(ctk.CTkFrame):
             self.mute_btn.configure(image=self._vol_icon_mute)
         self.waveform.set_playback_params(volume=vol / 100.0)
         self.tts.set_volume(vol / 100.0)
+        if self.settings:
+            if self._vol_save_after is not None:
+                try:
+                    self.after_cancel(self._vol_save_after)
+                except Exception:
+                    pass
+            self._vol_save_after = self.after(
+                250, lambda v=vol: self._save_volume_now(v)
+            )
 
     def _on_voice_change(self, voice_display: str) -> None:
         raw_voice = self.voice_map.get(voice_display, "tr-TR-EmelNeural")
         self.tts._voice = raw_voice
+        if self.settings:
+            self.settings.set_audio("voice", raw_voice)
 
     def _on_track_press(self, _event=None) -> None:
         self._is_seeking = True

@@ -505,11 +505,15 @@ class App(_AppBase):
             on_enhance=self._on_enhance_clicked,
             on_ask_question=self._on_ask_question_clicked,
             on_jump_to_offset=self._on_jump_to_offset,
+            settings=self.settings,
         )
         self.text_panel.grid(row=0, column=1, padx=(SPACING_CARD // 2, 0), sticky="nsew")
 
         self.audio_panel = AudioPanel(
-            view, self.tts_service, on_stop=self._on_playback_stopped
+            view,
+            self.tts_service,
+            on_stop=self._on_playback_stopped,
+            settings=self.settings,
         )
         self.audio_panel.grid(row=1, column=0, sticky="ew")
 
