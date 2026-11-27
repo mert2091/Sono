@@ -40,9 +40,9 @@ def load_document(file_path: str) -> List[Dict[str, Any]]:
 
 
 def _load_pdf(file_path: str) -> List[Dict[str, Any]]:
-    """pypdf ile PDF sayfalarını metin olarak çıkarır ve kırık satırları birleştirir."""
+    """pypdf ile PDF metnini çıkarır; taranmış/görsel PDF ise otomatik Gemini OCR kullanır."""
     import pypdf
-    from utils.text_utils import smart_join_lines
+    from utils.text_utils import clean_text, smart_join_lines
 
     pages = []
     reader = pypdf.PdfReader(file_path)
@@ -56,6 +56,26 @@ def _load_pdf(file_path: str) -> List[Dict[str, Any]]:
             "title": f"📄 Sayfa {i + 1} / {total}",
             "text": text,
         })
+
+    # Eğer PDF taranmış/görsel tabanlıysa (seçilebilir metin yoksa) Gemini PDF OCR devreye girsin
+    extracted_chars = sum(len(p["text"].strip()) for p in pages)
+    if extracted_chars < 10:
+        import config
+        if not config.has_api_key():
+            raise ValueError(
+                "Bu PDF görsel/taranmış tabanlı görünüyor. Okumak için Ayarlar → Yapay Zeka ekranından Gemini API anahtarınızı girin."
+            )
+        from services.ocr_service import extract_text_from_pdf_bytes
+        with open(file_path, "rb") as f:
+            pdf_bytes = f.read()
+        if len(pdf_bytes) > 20 * 1024 * 1024:
+            raise ValueError("Görsel PDF boyutu Gemini OCR sınırı (20 MB) için çok büyük.")
+        ocr_text = clean_text(extract_text_from_pdf_bytes(pdf_bytes))
+        return [{
+            "page_num": 1,
+            "title": f"📄 PDF OCR ({total} sayfa)" if total > 1 else "📄 PDF OCR (1 sayfa)",
+            "text": ocr_text,
+        }]
 
     return pages
 

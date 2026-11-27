@@ -84,6 +84,7 @@ class ImagePanel(ctk.CTkFrame):
         self._ctk_image = None
         self._doc_pages: List[Dict[str, Any]] = []
         self._current_page_idx: int = 0
+        self._last_doc_path: str = ""
         self._is_loading_doc: bool = False
 
         self._setup_ui()
@@ -540,6 +541,7 @@ class ImagePanel(ctk.CTkFrame):
         if self._is_loading_doc:
             return
         self._is_loading_doc = True
+        self._backdrop.set_scanning(True)
         self.info_lbl.configure(
             text="Yükleniyor…", fg_color="transparent", text_color=ACCENT_SOFT_TEXT
         )
@@ -563,6 +565,7 @@ class ImagePanel(ctk.CTkFrame):
         self._backdrop.set_scanning(False)
         self._doc_pages = pages
         self._current_page_idx = 0
+        self._last_doc_path = path
 
         if len(self._doc_pages) > 1:
             self.pagination_frame.grid()
@@ -601,7 +604,7 @@ class ImagePanel(ctk.CTkFrame):
 
         self._show_doc_state(
             title,
-            "Metin sağdaki stüdyoya aktarıldı.\nSesli dinleyebilir, özetleyebilir veya çevirebilirsiniz.",
+            "Metin soldaki stüdyoya aktarıldı.\nSesli dinleyebilir, özetleyebilir veya çevirebilirsiniz.",
         )
         self._current_image = None
         self._ctk_image = None
@@ -636,7 +639,7 @@ class ImagePanel(ctk.CTkFrame):
         idx = max(0, min(int(index), len(self._doc_pages) - 1))
         if idx != self._current_page_idx:
             self._current_page_idx = idx
-            self._render_current_doc_page()
+            self._display_current_page(self._last_doc_path)
             self._update_pagination_ui()
 
     def page_count(self) -> int:

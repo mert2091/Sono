@@ -39,3 +39,23 @@ def extract_text_from_image(
         action_label="OCR (görsel okuma)",
         on_retry=on_retry,
     )
+
+
+def extract_text_from_pdf_bytes(
+    pdf_bytes: bytes,
+    on_retry: Optional[Callable[[float, int], None]] = None,
+) -> str:
+    """Taranmış / görsel tabanlı PDF içeriğini Gemini API ile metne çevirir."""
+    from google.genai import types
+
+    part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+    prompt = (
+        "Bu PDF belgesindeki tüm sayfalarda yer alan yazıları ve metinleri olduğu gibi, "
+        "eksiksiz olarak oku ve çıkar. Yalnızca okuduğun metni yaz; açıklama, selamlama veya yorum ekleme. "
+        "Sayfalar arasındaki paragraf düzenini koru."
+    )
+    return generate_with_retry(
+        contents=[part, prompt],
+        action_label="PDF OCR (belge okuma)",
+        on_retry=on_retry,
+    )
