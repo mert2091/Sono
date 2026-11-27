@@ -27,6 +27,8 @@ from services.settings_service import (
 from ui.icons import get_icon
 from ui.theme import (
     ACCENT_COLOR,
+    BG_COLOR,
+    RAIL_BG,
     ACCENT_HOVER,
     ACCENT_SOFT_BG,
     ACCENT_SOFT_BORDER,
@@ -739,11 +741,11 @@ class SettingsPanel(ctk.CTkFrame):
             mode="system",
             title="Sistem · Windows",
             subtitle="Windows temasını otomatik izler",
-            bg_hex="#1E1F23",
-            rail_hex="#141417",
-            card_hex="#2A2B30",
-            accent_hex="#8AA2FF",
-            line_hex="#4A4D57",
+            bg_hex=BG_COLOR,
+            rail_hex=RAIL_BG,
+            card_hex=CARD_BG,
+            accent_hex=ACCENT_COLOR,
+            line_hex=CARD_BORDER,
         )
         self._make_theme_preview_card(
             theme_grid,

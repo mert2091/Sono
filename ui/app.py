@@ -191,6 +191,7 @@ class App(_AppBase):
         if not config.has_api_key():
             self.after(150, self._prompt_missing_api_key)
         self.after(2000, self._maybe_auto_check_updates)
+        self.after(2000, self._poll_system_theme)
 
     def _refresh_api_badge(self, ready: Optional[bool] = None, busy: bool = False) -> None:
         is_ready = config.has_api_key() if ready is None else bool(ready)
@@ -1391,6 +1392,17 @@ class App(_AppBase):
             except Exception:
                 pass
         return "dark"
+
+    def _poll_system_theme(self) -> None:
+        try:
+            if getattr(self, "_theme_preference", "system") == "system":
+                sys_mode = self._resolve_system_theme()
+                if sys_mode != self._current_theme:
+                    self._apply_theme_mode("system")
+        except Exception:
+            pass
+        if self.winfo_exists():
+            self.after(2000, self._poll_system_theme)
 
     def _apply_theme_mode(self, mode: str) -> None:
         pref = str(mode).lower()
