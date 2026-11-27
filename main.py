@@ -39,6 +39,69 @@ if sys.platform == "win32":
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
+
+def _notify_existing_instance() -> bool:
+    """Halihazirda acik bir Sono ornegi varsa onu one getirir ve True doner."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import ctypes
+        mutex = ctypes.windll.kernel32.CreateMutexW(
+            None, False, "Local\\Sono_SingleInstance_Mutex_v1"
+        )
+        last_err = ctypes.windll.kernel32.GetLastError()
+        globals()["_SONO_INSTANCE_MUTEX"] = mutex
+        if last_err == 183:  # ERROR_ALREADY_EXISTS
+            import socket
+            from utils.paths import DATA_DIR
+            port_file = DATA_DIR / "instance.port"
+            if port_file.exists():
+                try:
+                    port = int(port_file.read_text(encoding="utf-8").strip())
+                    with socket.create_connection(("127.0.0.1", port), timeout=1.5) as s:
+                        s.sendall(b"SHOW\n")
+                except Exception:
+                    pass
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def _start_instance_listener(app) -> None:
+    """Ikinci bir Sono acilmaya calisildiginda mevcut pencereyi one getiren yerel dinleyici."""
+    import socket
+    import threading
+    from utils.paths import DATA_DIR
+
+    try:
+        srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        srv.bind(("127.0.0.1", 0))
+        srv.listen(5)
+        port = srv.getsockname()[1]
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        port_file = DATA_DIR / "instance.port"
+        port_file.write_text(str(port), encoding="utf-8")
+
+        def _serve():
+            while True:
+                try:
+                    conn, _ = srv.accept()
+                    with conn:
+                        data = conn.recv(64)
+                        if b"SHOW" in data:
+                            app.after(0, app._restore_from_tray)
+                except OSError:
+                    break
+                except Exception:
+                    pass
+
+        threading.Thread(target=_serve, daemon=True).start()
+        app._instance_server = srv
+    except Exception:
+        pass
+
+
 def main():
     """Uygulamayı başlat."""
     from services.logger_service import setup_logging, get_logger
@@ -62,7 +125,11 @@ def main():
         # Uygulamayı başlat
         from ui.app import App
 
+        if _notify_existing_instance():
+            logger.info("Sono zaten acik; mevcut pencere one getirildi.")
+            return
         app = App()
+        _start_instance_listener(app)
         app.protocol("WM_DELETE_WINDOW", app.on_closing)
         app.mainloop()
     except Exception as e:

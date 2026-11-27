@@ -857,17 +857,34 @@ class TextPanel(ctk.CTkFrame):
         return text, mode
 
     def _handle_read(self) -> None:
-        text, mode, base_offset = self.get_reading_slice_with_offset()
-        if not text:
+        tb = self._get_active_textbox()
+        inner = tb._textbox
+        try:
+            sel_ranges = inner.tag_ranges("sel")
+            if sel_ranges:
+                raw_sel = inner.get(sel_ranges[0], sel_ranges[1])
+                selected = raw_sel.strip()
+                if selected:
+                    lead = len(raw_sel) - len(raw_sel.lstrip())
+                    sel_offset = len(inner.get("1.0", sel_ranges[0])) + lead
+                    try:
+                        self._on_read(selected, "selection", sel_offset)
+                    except TypeError:
+                        self._on_read(selected, "selection")
+                    return
+        except Exception:
+            pass
+
+        raw_full = inner.get("1.0", "end-1c")
+        full_text = raw_full.strip()
+        if not full_text:
             self.set_status("⚠️ Okunacak metin bulunamadı.")
             return
+        lead_full = len(raw_full) - len(raw_full.lstrip())
         try:
-            self._on_read(text, mode, base_offset)
+            self._on_read(full_text, "restart", lead_full)
         except TypeError:
-            try:
-                self._on_read(text, mode)
-            except TypeError:
-                self._on_read(text)
+            self._on_read(full_text, "full")
 
     def _handle_summarize(self) -> None:
         if self._on_summarize:
@@ -997,7 +1014,7 @@ class TextPanel(ctk.CTkFrame):
 
     def clear_highlight(self) -> None:
         self._last_hl_state = None
-        for tb in (self.ocr_textbox, self.trans_textbox, self.summary_textbox, self.qa_textbox):
+        for tb in (self.ocr_textbox, self.orig_side_textbox, self.trans_textbox, self.summary_textbox, self.qa_textbox):
             try:
                 for tag in ("highlight", "read_done", "unread"):
                     tb._textbox.tag_remove(tag, "1.0", "end")
@@ -1055,10 +1072,21 @@ class TextPanel(ctk.CTkFrame):
             inner.see(start_idx)
 
     def highlight_word_span_abs(
-        self, abs_start: int, abs_end: int, read_start_pos: int = 0
+        self,
+        abs_start: int,
+        abs_end: int,
+        read_start_pos: int = 0,
+        target_textbox: Optional[ctk.CTkTextbox] = None,
     ) -> None:
-        tb = self._get_active_textbox()
+        tb = target_textbox or self._get_active_textbox()
         self._apply_monkeytype_highlight(tb, abs_start, abs_end, read_start_pos=read_start_pos)
+        if self._side_by_side and tb is self.ocr_textbox:
+            try:
+                self._apply_monkeytype_highlight(
+                    self.orig_side_textbox, abs_start, abs_end, read_start_pos=read_start_pos
+                )
+            except Exception:
+                pass
 
     def highlight_paragraph(self, index: int, paragraphs: list[str]) -> None:
         tb = self._get_active_textbox()

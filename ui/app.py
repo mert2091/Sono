@@ -1674,7 +1674,8 @@ class App(_AppBase):
     def _on_jump_to_offset(self, char_offset: int) -> None:
         if not (self.tts_service.is_playing or self.tts_service.is_paused):
             return
-        raw_full = self.text_panel._get_active_textbox()._textbox.get("1.0", "end-1c")
+        target_tb = getattr(self, "_active_reading_textbox", None) or self.text_panel._get_active_textbox()
+        raw_full = target_tb._textbox.get("1.0", "end-1c")
         if not raw_full or char_offset < 0 or char_offset >= len(raw_full):
             return
 
@@ -1820,8 +1821,14 @@ class App(_AppBase):
     def _on_read_clicked(
         self, text: str, mode: str = "full", base_offset: Optional[int] = None
     ) -> None:
+        if mode == "cursor" and getattr(self, "_active_reading_textbox", None) is not None:
+            target_tb = self._active_reading_textbox
+        else:
+            target_tb = self.text_panel._get_active_textbox()
+            self._active_reading_textbox = target_tb
+
         if base_offset is None:
-            raw_full = self.text_panel._get_active_textbox()._textbox.get("1.0", "end-1c")
+            raw_full = target_tb._textbox.get("1.0", "end-1c")
             found = raw_full.find(text)
             base_offset = found if found != -1 else 0
 
@@ -1839,7 +1846,7 @@ class App(_AppBase):
         ):
             start_idx = self._active_resume_paragraph
         self._active_resume_paragraph = 0
-        active_hist_id = self._active_history_id if mode == "full" else None
+        active_hist_id = self._active_history_id if mode in ("full", "restart") else None
 
         self._playback_gen += 1
         session_gen = self._playback_gen
@@ -1870,7 +1877,10 @@ class App(_AppBase):
                 if session_gen != self._playback_gen:
                     return
                 self.text_panel.highlight_word_span_abs(
-                    abs_start, abs_end, read_start_pos=read_start_pos
+                    abs_start,
+                    abs_end,
+                    read_start_pos=read_start_pos,
+                    target_textbox=target_tb,
                 )
 
             self.after(0, _ui_word)
@@ -1969,6 +1979,12 @@ class App(_AppBase):
                 pass
             self._active_clipboard_prompt = None
 
+        srv = getattr(self, "_instance_server", None)
+        if srv is not None:
+            try:
+                srv.close()
+            except Exception:
+                pass
         self._tray_service.stop()
         self._global_hotkeys.stop()
         self.tts_service.shutdown()

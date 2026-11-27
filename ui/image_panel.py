@@ -317,10 +317,11 @@ class ImagePanel(ctk.CTkFrame):
         # ── 5. Görsel Yardımcı Araçları (Lucide ikonlu, çerçevesiz) ──
         tools_frame = ctk.CTkFrame(self, fg_color="transparent")
         tools_frame.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
-        tools_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        tools_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
         self._rot_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED, stroke_width=1.5)
         self._crop_icon = get_icon("crop", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        self._rescan_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED, stroke_width=1.5)
         self._trash_icon = get_icon("trash", size=14, color=TEXT_MUTED, stroke_width=1.5)
 
         self.rotate_btn = ctk.CTkButton(
@@ -369,7 +370,23 @@ class ImagePanel(ctk.CTkFrame):
             corner_radius=8,
             state="disabled",
         )
-        self.remove_btn.grid(row=0, column=2, padx=2, sticky="ew")
+        self.rescan_btn = ctk.CTkButton(
+            tools_frame,
+            text=" Yeniden tara",
+            image=self._rescan_icon,
+            compound="left",
+            command=self._rescan_current_image,
+            height=32,
+            font=ui_font(12),
+            fg_color="transparent",
+            hover_color=SECONDARY_BTN,
+            text_color=TEXT_MUTED,
+            corner_radius=8,
+            state="disabled",
+        )
+        self.rescan_btn.grid(row=0, column=2, padx=2, sticky="ew")
+
+        self.remove_btn.grid(row=0, column=3, padx=2, sticky="ew")
 
     # ── Canlı OCR Tarama Animasyonu Kontrolü ─────────────────────
 
@@ -605,6 +622,7 @@ class ImagePanel(ctk.CTkFrame):
 
         self.rotate_btn.configure(state="normal")
         self.crop_btn.configure(state="normal")
+        self.rescan_btn.configure(state="normal")
         self.remove_btn.configure(state="normal")
 
         if trigger_callback and self._on_image_loaded:
@@ -626,7 +644,12 @@ class ImagePanel(ctk.CTkFrame):
         )
         self.rotate_btn.configure(state="disabled")
         self.crop_btn.configure(state="disabled")
+        self.rescan_btn.configure(state="disabled")
         self.remove_btn.configure(state="disabled")
+
+    def _rescan_current_image(self) -> None:
+        if self._current_image is not None and self._on_image_loaded:
+            self._on_image_loaded(self._current_image)
 
     @property
     def current_image(self) -> Optional[Image.Image]:
