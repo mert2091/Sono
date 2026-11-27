@@ -630,6 +630,18 @@ class ImagePanel(ctk.CTkFrame):
         self.doc_hint_lbl.configure(text=hint)
         self.doc_state_box.grid(row=0, column=0, padx=20, pady=20)
 
+    def go_to_page(self, index: int) -> None:
+        if not self._doc_pages:
+            return
+        idx = max(0, min(int(index), len(self._doc_pages) - 1))
+        if idx != self._current_page_idx:
+            self._current_page_idx = idx
+            self._render_current_doc_page()
+            self._update_pagination_ui()
+
+    def page_count(self) -> int:
+        return len(self._doc_pages)
+
     def _prev_page(self) -> None:
         if self._current_page_idx > 0:
             self._current_page_idx -= 1

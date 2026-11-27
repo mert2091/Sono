@@ -60,7 +60,7 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
         "auto_check": True,
     },
     "general": {
-        "theme": "dark",
+        "theme": "system",
         "export_dir": "",
     },
     "audio": {

@@ -140,13 +140,15 @@ class App(_AppBase):
         self.minsize(1060, 700)
 
         self.settings = SettingsService()
-        saved_theme = self.settings.get_general("theme", "dark")
-        if saved_theme not in ("dark", "light"):
-            saved_theme = "dark"
+        saved_theme = self.settings.get_general("theme", "system")
+        if saved_theme not in ("system", "dark", "light"):
+            saved_theme = "system"
         set_reduced_motion(self.settings.get_feature("reduced_motion"))
-        ctk.set_appearance_mode(saved_theme)
+        self._theme_preference = saved_theme
+        resolved_theme = self._resolve_system_theme() if saved_theme == "system" else saved_theme
+        ctk.set_appearance_mode(resolved_theme)
         self.configure(fg_color=BG_COLOR)
-        self._current_theme = saved_theme
+        self._current_theme = resolved_theme
         self._active_view = "home"
         self._current_doc_title = ""
         self._last_duration_str = "0:00"
@@ -1375,19 +1377,38 @@ class App(_AppBase):
 
     # ── Canlı Tema Geçişi (Koyu <-> Açık) ────────────────────────
 
+    @staticmethod
+    def _resolve_system_theme() -> str:
+        if sys.platform == "win32":
+            try:
+                import winreg
+                with winreg.OpenKey(
+                    winreg.HKEY_CURRENT_USER,
+                    r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+                ) as key:
+                    val, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
+                    return "light" if int(val) == 1 else "dark"
+            except Exception:
+                pass
+        return "dark"
+
     def _apply_theme_mode(self, mode: str) -> None:
-        mode = "light" if str(mode).lower() == "light" else "dark"
-        ctk.set_appearance_mode(mode)
-        self._current_theme = mode
+        pref = str(mode).lower()
+        if pref not in ("system", "dark", "light"):
+            pref = "system"
+        self._theme_preference = pref
+        resolved = self._resolve_system_theme() if pref == "system" else pref
+        ctk.set_appearance_mode(resolved)
+        self._current_theme = resolved
         if hasattr(self, "theme_btn"):
-            is_dark = mode == "dark"
+            is_dark = resolved == "dark"
             self.theme_btn.configure(
                 image=self._ic_rail["sun"] if is_dark else self._ic_rail["moon"],
                 text="",
             )
         if hasattr(self, "settings_panel") and hasattr(self.settings_panel, "sync_theme_selection"):
-            self.settings_panel.sync_theme_selection(mode)
-        notify_theme_changed(mode)
+            self.settings_panel.sync_theme_selection(pref)
+        notify_theme_changed(resolved)
 
     def _toggle_theme(self) -> None:
         new_mode = "light" if self._current_theme == "dark" else "dark"
@@ -1560,7 +1581,7 @@ class App(_AppBase):
     # ── Çeviri İşlemleri ──────────────────────────────────────────
 
     def _on_translate_clicked(self, target_lang: str) -> None:
-        text = self.text_panel.get_active_text()
+        text = self.text_panel.get_ocr_text()
         if not text:
             return
 
@@ -1616,7 +1637,7 @@ class App(_AppBase):
     # ── AI Akıllı Araçları ────────────────────────────────────────
 
     def _on_summarize_clicked(self) -> None:
-        text = self.text_panel.get_active_text()
+        text = self.text_panel.get_ocr_text()
         if not text:
             self.text_panel.set_status("⚠️ Özet için metin bulunamadı.")
             return
@@ -2111,6 +2132,10 @@ class App(_AppBase):
                     duration_str=self._last_duration_str,
                     source_lang=self._last_source_lang,
                 )
+                if hasattr(self.image_panel, "page_count") and self.image_panel.page_count() > 1:
+                    p_cnt = self.image_panel.page_count()
+                    target_page = min(p_cnt - 1, int((index / max(1, len(paragraphs))) * p_cnt))
+                    self.image_panel.go_to_page(target_page)
 
             self.after(0, _ui_para)
 

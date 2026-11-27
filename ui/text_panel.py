@@ -805,6 +805,11 @@ class TextPanel(ctk.CTkFrame):
 
     def set_ocr_text(self, text: str) -> None:
         self._render_formatted_text(self.ocr_textbox, text)
+        for tb_clr in (self.trans_textbox, self.summary_textbox):
+            try:
+                tb_clr.delete("1.0", "end")
+            except Exception:
+                pass
         self._detected_lang = detect_language_local(text)
         self.detected_lang_lbl.configure(text=f"Algılanan dil: {self._detected_lang}")
         self._sync_orig_side_panel()
@@ -912,7 +917,7 @@ class TextPanel(ctk.CTkFrame):
     # ── Eylemler ─────────────────────────────────────────────────
 
     def _handle_translate(self) -> None:
-        text = self.get_active_text()
+        text = self.get_ocr_text()
         if not text:
             self.set_status("⚠️ Çevrilecek metin bulunamadı.")
             return
@@ -1204,8 +1209,20 @@ class TextPanel(ctk.CTkFrame):
 
         inner.tag_raise("sentence")
         inner.tag_raise("highlight")
-        if inner.bbox(start_idx) is None or inner.bbox(end_idx) is None:
-            inner.see(start_idx)
+        try:
+            bbox = inner.bbox(start_idx)
+            end_bbox = inner.bbox(end_idx)
+            view_h = max(1, inner.winfo_height())
+            if bbox is None or end_bbox is None:
+                inner.see(start_idx)
+                bbox = inner.bbox(start_idx)
+            if bbox is not None and bbox[1] > int(view_h * 0.70):
+                line_h = max(18, bbox[3])
+                shift_lines = max(1, int((bbox[1] - int(view_h * 0.30)) / line_h))
+                inner.yview_scroll(shift_lines, "units")
+        except Exception:
+            if inner.bbox(start_idx) is None or inner.bbox(end_idx) is None:
+                inner.see(start_idx)
 
     def highlight_word_span_abs(
         self,

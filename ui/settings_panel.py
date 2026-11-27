@@ -723,42 +723,54 @@ class SettingsPanel(ctk.CTkFrame):
         ).grid(row=0, column=0, sticky="w", padx=PADDING_CARD, pady=(PADDING_CARD, 4))
         ctk.CTkLabel(
             card,
-            text="Koyu veya Açık temasını anlık olarak seç",
+            text="Sistem (Windows), Koyu veya Açık temasını seç — seçimin kalıcı kaydedilir",
             font=ui_font(12),
             text_color=TEXT_MUTED,
         ).grid(row=1, column=0, sticky="w", padx=PADDING_CARD, pady=(0, 12))
 
-        # İki görsel önizleme kartı
+        # Üç görsel önizleme kartı: Sistem (Windows) + Koyu + Açık
         theme_grid = ctk.CTkFrame(card, fg_color="transparent")
         theme_grid.grid(row=2, column=0, sticky="ew", padx=PADDING_CARD, pady=(0, 16))
-        theme_grid.grid_columnconfigure((0, 1), weight=1, uniform="tcard")
+        theme_grid.grid_columnconfigure((0, 1, 2), weight=1, uniform="tcard")
 
         self._make_theme_preview_card(
             theme_grid,
             col=0,
-            mode="dark",
-            title="Koyu · Grafit",
-            subtitle="Grafit yüzeyler · Düşük ışıkta odak",
-            bg_hex="#141415",
-            rail_hex="#0F0F10",
-            card_hex="#19191B",
-            accent_hex="#E59A3C",
-            line_hex="#2F2F34",
+            mode="system",
+            title="Sistem · Windows",
+            subtitle="Windows temasını otomatik izler",
+            bg_hex="#1E1F23",
+            rail_hex="#141417",
+            card_hex="#2A2B30",
+            accent_hex="#8AA2FF",
+            line_hex="#4A4D57",
         )
         self._make_theme_preview_card(
             theme_grid,
             col=1,
+            mode="dark",
+            title="Koyu · Grafit",
+            subtitle="Düşük ışıkta rahat odak",
+            bg_hex="#141415",
+            rail_hex="#0F0F10",
+            card_hex="#19191B",
+            accent_hex="#8AA2FF",
+            line_hex="#2F2F34",
+        )
+        self._make_theme_preview_card(
+            theme_grid,
+            col=2,
             mode="light",
             title="Açık · Kağıt",
-            subtitle="Sıcak kağıt · Gündüz okuma netliği",
+            subtitle="Gündüz okuma netliği",
             bg_hex="#F7F4EE",
-            rail_hex="#EFECE6",
+            rail_hex="#F1EDE5",
             card_hex="#FDFBF7",
-            accent_hex="#B45309",
-            line_hex="#D8D2C7",
+            accent_hex="#3D5BD9",
+            line_hex="#CFC8BC",
         )
 
-        cur_mode = self.settings.get_general("theme", "dark")
+        cur_mode = self.settings.get_general("theme", "system")
         self.sync_theme_selection(cur_mode)
 
         sep = ctk.CTkFrame(card, height=1, fg_color=CARD_BORDER)
@@ -822,7 +834,7 @@ class SettingsPanel(ctk.CTkFrame):
             border_color=CARD_BORDER,
             cursor="hand2",
         )
-        outer.grid(row=0, column=col, sticky="ew", padx=(0, 8) if col == 0 else (8, 0))
+        outer.grid(row=0, column=col, sticky="ew", padx=(0 if col == 0 else 6, 0 if col == 2 else 6))
 
         # Mini pencere önizlemesi
         preview = ctk.CTkFrame(
@@ -895,7 +907,8 @@ class SettingsPanel(ctk.CTkFrame):
         self._theme_cards[mode] = {"frame": outer, "badge": badge}
 
     def sync_theme_selection(self, mode: str) -> None:
-        mode = "light" if str(mode).lower() == "light" else "dark"
+        m_low = str(mode).lower()
+        mode = m_low if m_low in ("system", "light", "dark") else "system"
         for m, refs in self._theme_cards.items():
             if m == mode:
                 refs["frame"].configure(border_color=ACCENT_COLOR)
