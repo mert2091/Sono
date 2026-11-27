@@ -19,33 +19,20 @@ from services.export_service import (
     export_to_markdown,
     export_to_pdf,
 )
-from ui.animations import AcousticProgressRibbon, SlidingTabBar
+from ui.animations import AcousticProgressRibbon
 from ui.icons import get_icon
 from ui.theme import (
-    BG_COLOR,
     ACCENT_COLOR,
-    ACCENT_HOVER,
     ACCENT_SOFT_BG,
-    ACCENT_SOFT_BORDER,
-    ACCENT_SOFT_TEXT,
-    ACCENT_TEXT,
-    BTN_HEIGHT_MAIN,
+    BG_COLOR,
     CARD_BG,
     CARD_BORDER,
     DIVIDER_COLOR,
     FONT_FAMILY,
-    HL_ACTIVE_BG,
-    HL_ACTIVE_FG,
-    HL_DONE_FG,
-    HL_UNREAD_FG,
-    INNER_BG,
-    PADDING_CARD,
     PRIMARY_BTN_BG,
     PRIMARY_BTN_HOVER,
     PRIMARY_BTN_TEXT,
     RADIUS_BTN,
-    RADIUS_CARD,
-    RADIUS_INNER,
     SECONDARY_BTN,
     SECONDARY_BTN_BORDER,
     SECONDARY_BTN_HOVER,
@@ -54,7 +41,9 @@ from ui.theme import (
     SUCCESS_COLOR,
     TEXT_MAIN,
     TEXT_MUTED,
+    TEXT_SUBTLE,
     WARN_COLOR,
+    display_font,
     mono_font,
     register_theme_listener,
     resolve_color,
@@ -64,6 +53,72 @@ from ui.theme import (
 from utils.text_utils import get_text_stats
 
 _EMOJI_PREFIX_RE = re.compile(r"^[\s✓✅❌⚠️⏳🔊🎵🌙❓💡•●]+")
+
+_SEG_BG = ("#EFE9DF", "#0F0F10")
+_SEG_ACTIVE_BG = ("#FDFBF7", "#232325")
+_SEG_HOVER_BG = ("#E5DFD3", "#18181B")
+
+
+class SegmentedTabs(ctk.CTkFrame):
+    """Üst çubuk için referans stüdyo tarzı segmentli sekme kontrolü."""
+
+    def __init__(
+        self,
+        master,
+        tabs: list[str],
+        on_change: Callable[[str], None],
+        initial: Optional[str] = None,
+        bg_token=None,
+        **kwargs,
+    ):
+        super().__init__(
+            master,
+            corner_radius=10,
+            border_width=1,
+            border_color=CARD_BORDER,
+            fg_color=_SEG_BG,
+            **kwargs,
+        )
+        self._tabs = list(tabs)
+        self._on_change = on_change
+        self._active = initial or (self._tabs[0] if self._tabs else "")
+        self.buttons: dict[str, ctk.CTkButton] = {}
+
+        last_idx = len(self._tabs) - 1
+        for idx, name in enumerate(self._tabs):
+            is_act = name == self._active
+            btn = ctk.CTkButton(
+                self,
+                text=name,
+                width=max(64, len(name) * 9 + 24),
+                height=28,
+                corner_radius=7,
+                font=ui_font(13, "semibold"),
+                fg_color=_SEG_ACTIVE_BG if is_act else "transparent",
+                hover_color=_SEG_ACTIVE_BG if is_act else _SEG_HOVER_BG,
+                text_color=TEXT_MAIN if is_act else TEXT_MUTED,
+                border_width=0,
+                command=lambda n=name: self.select(n, notify=True),
+            )
+            pad_l = 3 if idx == 0 else 2
+            pad_r = 3 if idx == last_idx else 0
+            btn.pack(side="left", padx=(pad_l, pad_r), pady=3)
+            self.buttons[name] = btn
+
+    def select(self, name: str, notify: bool = False) -> None:
+        if name not in self.buttons:
+            return
+        changed = name != self._active
+        self._active = name
+        for k, btn in self.buttons.items():
+            is_act = k == name
+            btn.configure(
+                fg_color=_SEG_ACTIVE_BG if is_act else "transparent",
+                hover_color=_SEG_ACTIVE_BG if is_act else _SEG_HOVER_BG,
+                text_color=TEXT_MAIN if is_act else TEXT_MUTED,
+            )
+        if notify and changed and self._on_change:
+            self._on_change(name)
 
 
 class TextPanel(ctk.CTkFrame):
@@ -112,25 +167,27 @@ class TextPanel(ctk.CTkFrame):
         self.settings = settings
         self._header_parent = header_parent
 
-        saved_font = 14
+        saved_font = 18
         saved_lang = "Türkçe"
         saved_side_by_side = False
         if self.settings:
             try:
-                f_val = int(self.settings.get_studio("font_size", 14))
+                f_val = int(self.settings.get_studio("font_size", 18))
                 saved_font = max(10, min(28, f_val))
             except (TypeError, ValueError):
-                saved_font = 14
+                saved_font = 18
             l_val = self.settings.get_studio("target_lang", "Türkçe")
             if l_val in self.AVAILABLE_LANGUAGES:
                 saved_lang = l_val
             saved_side_by_side = bool(self.settings.get_studio("side_by_side", False))
 
+        self._reading_font_family = self._resolve_reading_font_family()
         self._font_size = saved_font
         self._active_tab = "Metin"
         self._side_by_side = False
         self._detected_lang = "Otomatik"
         self._last_target_lang = saved_lang
+        self._reading_meta = ""
         self._copy_reset_after: Optional[str] = None
         self._last_hl_state: Optional[tuple] = None
 
@@ -153,7 +210,7 @@ class TextPanel(ctk.CTkFrame):
             header_frame.grid(row=0, column=0, padx=0, pady=(0, 8), sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
 
-        self.tab_bar = SlidingTabBar(
+        self.tab_bar = SegmentedTabs(
             header_frame,
             tabs=["Metin", "Çeviri", "Özet", "Soru-Cevap"],
             on_change=self._switch_tab,
@@ -309,12 +366,37 @@ class TextPanel(ctk.CTkFrame):
         )
         self.content_frame.grid(row=3, column=0, padx=0, pady=(0, 6), sticky="nsew")
         self.content_frame.grid_rowconfigure(0, weight=0)
-        self.content_frame.grid_rowconfigure(1, weight=1)
+        self.content_frame.grid_rowconfigure(1, weight=0)
+        self.content_frame.grid_rowconfigure(2, weight=0)
+        self.content_frame.grid_rowconfigure(3, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
 
         # Canlı ilerleme şeridi
         self.progress_ribbon = AcousticProgressRibbon(self.content_frame, bg_token=BG_COLOR, height=2)
         self.progress_ribbon.grid(row=0, column=0, sticky="ew", padx=8, pady=(4, 0))
+
+        # Okuma üst bilgisi (meta) ve belge başlığı
+        self.meta_lbl = ctk.CTkLabel(
+            self.content_frame,
+            text="Hazır",
+            font=mono_font(12),
+            text_color=TEXT_SUBTLE,
+            anchor="w",
+        )
+        self.meta_lbl.grid(row=1, column=0, sticky="ew", padx=(48, 32), pady=(20, 4))
+
+        self.title_lbl = ctk.CTkLabel(
+            self.content_frame,
+            text="",
+            font=display_font(28, "normal"),
+            text_color=TEXT_MAIN,
+            anchor="w",
+            justify="left",
+            wraplength=660,
+        )
+        self.title_lbl.grid(row=2, column=0, sticky="ew", padx=(48, 32), pady=(0, 12))
+        self.title_lbl.grid_remove()
+        self.content_frame.bind("<Configure>", self._on_content_resize, add="+")
 
         self.ocr_textbox = self._make_textbox(
             "Görselden okunan veya belgeden çıkarılan metin burada görüntülenir.\n\n"
@@ -327,7 +409,7 @@ class TextPanel(ctk.CTkFrame):
         self.trans_container.grid_columnconfigure(0, weight=1)
 
         trans_top_bar = ctk.CTkFrame(self.trans_container, fg_color="transparent")
-        trans_top_bar.grid(row=0, column=0, padx=8, pady=(8, 4), sticky="ew")
+        trans_top_bar.grid(row=0, column=0, padx=(32, 32), pady=(8, 4), sticky="ew")
         trans_top_bar.grid_columnconfigure(0, weight=1)
 
         self.detected_lang_lbl = ctk.CTkLabel(
@@ -336,7 +418,7 @@ class TextPanel(ctk.CTkFrame):
             font=ui_font(11),
             text_color=TEXT_MUTED,
             fg_color="transparent",
-            padx=4,
+            padx=0,
             pady=2,
         )
         self.detected_lang_lbl.grid(row=0, column=0, sticky="w")
@@ -344,7 +426,7 @@ class TextPanel(ctk.CTkFrame):
 
 
         self.trans_split_frame = ctk.CTkFrame(self.trans_container, fg_color="transparent")
-        self.trans_split_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
+        self.trans_split_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=(0, 4))
         self.trans_split_frame.grid_rowconfigure(0, weight=1)
         self.trans_split_frame.grid_columnconfigure(0, weight=1)
 
@@ -362,8 +444,13 @@ class TextPanel(ctk.CTkFrame):
             text="Orijinal metin",
             font=ui_font(11, "semibold"),
             text_color=TEXT_MUTED,
-        ).grid(row=0, column=0, sticky="w", padx=12, pady=(8, 0))
+        ).grid(row=0, column=0, sticky="w", padx=16, pady=(8, 0))
         self.orig_side_textbox = self._make_textbox("", parent=self.orig_side_panel)
+        self.orig_side_textbox.configure(fg_color=CARD_BG)
+        try:
+            self.orig_side_textbox._textbox.configure(padx=16)
+        except Exception:
+            pass
         self.orig_side_textbox.grid(row=1, column=0, sticky="nsew", padx=4, pady=(2, 4))
 
         self.trans_textbox = self._make_textbox(
@@ -379,7 +466,7 @@ class TextPanel(ctk.CTkFrame):
         self.qa_container.grid_columnconfigure(0, weight=1)
 
         qa_bar = ctk.CTkFrame(self.qa_container, fg_color="transparent")
-        qa_bar.grid(row=0, column=0, padx=8, pady=(8, 4), sticky="ew")
+        qa_bar.grid(row=0, column=0, padx=(32, 32), pady=(8, 4), sticky="ew")
         qa_bar.grid_columnconfigure(0, weight=1)
 
         self.qa_entry = ctk.CTkEntry(
@@ -417,9 +504,9 @@ class TextPanel(ctk.CTkFrame):
             "Belge hakkında sorduğunuz soruların yanıtları burada listelenir.",
             parent=self.qa_container,
         )
-        self.qa_textbox.grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
+        self.qa_textbox.grid(row=1, column=0, sticky="nsew", padx=0, pady=(0, 4))
 
-        self.ocr_textbox.grid(row=1, column=0, sticky="nsew", padx=8, pady=(4, 8))
+        self.ocr_textbox.grid(row=3, column=0, sticky="nsew", padx=(16, 0), pady=(0, 8))
 
         # ── 5. Durum ve Tabular İstatistik Satırı ──
         status_bar = ctk.CTkFrame(self, fg_color="transparent")
@@ -474,21 +561,51 @@ class TextPanel(ctk.CTkFrame):
             command=command,
         )
 
+    @staticmethod
+    def _resolve_reading_font_family() -> str:
+        try:
+            import tkinter.font as tkfont
+
+            if "Atkinson Hyperlegible" in tkfont.families():
+                return "Atkinson Hyperlegible"
+        except Exception:
+            pass
+        return FONT_FAMILY
+
+    def _reading_font(self, size: int, weight: str = "normal") -> ctk.CTkFont:
+        w = "bold" if weight == "bold" else "normal"
+        return ctk.CTkFont(family=self._reading_font_family, size=size, weight=w)
+
+    def _on_content_resize(self, event) -> None:
+        try:
+            w = max(260, min(680, int(event.width) - 80))
+            self.title_lbl.configure(wraplength=w)
+        except Exception:
+            pass
+
     def _make_textbox(self, placeholder_text: str = "", parent=None) -> ctk.CTkTextbox:
         target = parent if parent else self.content_frame
         tb = ctk.CTkTextbox(
             target,
-            font=ui_font(self._font_size),
+            font=self._reading_font(self._font_size),
             text_color=TEXT_MAIN,
-            fg_color="transparent",
+            fg_color=BG_COLOR,
+            border_width=0,
             wrap="word",
-            corner_radius=RADIUS_INNER,
-            padx=10,
+            corner_radius=0,
+            padx=32,
             pady=8,
         )
         # Editoryal okuma rahatlığı için satır ve paragraf aralığı
         try:
-            tb._textbox.configure(spacing1=3, spacing2=3, spacing3=7, insertbackground=resolve_color(ACCENT_COLOR))
+            tb._textbox.configure(
+                spacing1=0,
+                spacing2=10,
+                spacing3=22,
+                padx=32,
+                pady=8,
+                insertbackground=resolve_color(ACCENT_COLOR),
+            )
         except Exception:
             pass
         tb.insert("1.0", placeholder_text)
@@ -570,24 +687,24 @@ class TextPanel(ctk.CTkFrame):
         self.qa_container.grid_remove()
 
         if tab_name == "Metin":
-            self.ocr_textbox.grid(row=1, column=0, sticky="nsew", padx=6, pady=(2, 6))
+            self.ocr_textbox.grid(row=3, column=0, sticky="nsew", padx=(16, 0), pady=(0, 8))
         elif tab_name == "Çeviri":
             self._sync_orig_side_panel()
-            self.trans_container.grid(row=1, column=0, sticky="nsew", padx=4, pady=(2, 4))
+            self.trans_container.grid(row=3, column=0, sticky="nsew", padx=(16, 0), pady=(0, 8))
             has_src = bool(self.ocr_textbox.get("1.0", "end-1c").strip())
             has_tr = bool(self.trans_textbox.get("1.0", "end-1c").strip())
             if has_src and not has_tr and not getattr(self, "_auto_translating", False):
                 self._auto_translating = True
                 self.after(60, self._run_auto_translate)
         elif tab_name == "Özet":
-            self.summary_textbox.grid(row=1, column=0, sticky="nsew", padx=6, pady=(2, 6))
+            self.summary_textbox.grid(row=3, column=0, sticky="nsew", padx=(16, 0), pady=(0, 8))
             has_src = bool(self.ocr_textbox.get("1.0", "end-1c").strip())
             has_sum = bool(self.summary_textbox.get("1.0", "end-1c").strip())
             if has_src and not has_sum and not getattr(self, "_auto_summarizing", False):
                 self._auto_summarizing = True
                 self.after(60, self._run_auto_summarize)
         elif tab_name == "Soru-Cevap":
-            self.qa_container.grid(row=1, column=0, sticky="nsew", padx=6, pady=(2, 6))
+            self.qa_container.grid(row=3, column=0, sticky="nsew", padx=(16, 0), pady=(0, 8))
 
         self._update_stats()
 
@@ -724,6 +841,20 @@ class TextPanel(ctk.CTkFrame):
             self.qa_textbox.insert("1.0", new_block)
         self._switch_tab("Soru-Cevap")
 
+    def set_document_title(self, title: str) -> None:
+        clean = (title or "").strip()
+        if not clean:
+            self.title_lbl.configure(text="")
+            self.title_lbl.grid_remove()
+        else:
+            self.title_lbl.configure(text=clean)
+            self.title_lbl.grid()
+
+    def set_reading_meta(self, text: str) -> None:
+        clean = (text or "").strip()
+        self._reading_meta = clean
+        self.meta_lbl.configure(text=clean, text_color=TEXT_SUBTLE)
+
     def set_status(self, message: str) -> None:
         raw = (message or "").strip()
         if raw.startswith("❌") or "Hata" in raw or "Başarısız" in raw or "hata" in raw:
@@ -738,6 +869,8 @@ class TextPanel(ctk.CTkFrame):
         clean = _EMOJI_PREFIX_RE.sub("", raw).strip() or "Hazır"
         self.status_icon_lbl.configure(image=icon)
         self.status_lbl.configure(text=clean, text_color=col)
+        meta_col = TEXT_SUBTLE if col is TEXT_MUTED else col
+        self.meta_lbl.configure(text=clean, text_color=meta_col)
 
     def set_progress(self, value: float) -> None:
         self.progress_ribbon.set_progress(value)
@@ -763,7 +896,7 @@ class TextPanel(ctk.CTkFrame):
 
     def _apply_font_size(self) -> None:
         self.font_size_lbl.configure(text=f"{self._font_size}")
-        normal_font = ui_font(self._font_size)
+        normal_font = self._reading_font(self._font_size)
         for tb in (
             self.ocr_textbox,
             self.trans_textbox,
@@ -985,7 +1118,7 @@ class TextPanel(ctk.CTkFrame):
         self._last_hl_state = None
         for tb in (self.ocr_textbox, self.orig_side_textbox, self.trans_textbox, self.summary_textbox, self.qa_textbox):
             try:
-                for tag in ("highlight", "read_done", "unread"):
+                for tag in ("sentence", "highlight", "read_done", "unread"):
                     tb._textbox.tag_remove(tag, "1.0", "end")
             except Exception:
                 pass
@@ -1013,29 +1146,63 @@ class TextPanel(ctk.CTkFrame):
         read_start_pos = max(0, min(read_start_pos, start_pos))
         self._last_hl_state = (tb, start_pos, end_pos, read_start_pos)
 
-        for tag in ("highlight", "read_done", "unread"):
+        for tag in ("sentence", "highlight", "read_done", "unread"):
             inner.tag_remove(tag, "1.0", "end")
 
-        done_fg = resolve_color(HL_DONE_FG)
-        hl_bg = resolve_color(HL_ACTIVE_BG)
-        hl_fg = resolve_color(HL_ACTIVE_FG)
-        unread_fg = resolve_color(HL_UNREAD_FG)
+        # Paragraf sınırları
+        nl_before = full_raw.rfind("\n", 0, start_pos)
+        para_start = 0 if nl_before == -1 else nl_before + 1
+        nl_after = full_raw.find("\n", end_pos)
+        para_end = text_len if nl_after == -1 else nl_after
 
-        read_start_idx = f"1.0+{read_start_pos}c"
+        # Paragraf öncesi (okunmuş) ve sonrası (okunmamış)
+        if para_start > read_start_pos:
+            inner.tag_add("read_done", f"1.0+{read_start_pos}c", f"1.0+{para_start}c")
+            inner.tag_configure("read_done", foreground=resolve_color(TEXT_MUTED))
+
+        if para_end < text_len:
+            inner.tag_add("unread", f"1.0+{para_end}c", "end-1c")
+            inner.tag_configure("unread", foreground=resolve_color(TEXT_SUBTLE))
+
+        # Geçerli cümle sınırları
+        sent_start = para_start
+        for i in range(start_pos - 1, para_start - 1, -1):
+            if full_raw[i] in ".!?…" and i + 1 < start_pos and full_raw[i + 1].isspace():
+                j = i + 1
+                while j < start_pos and full_raw[j].isspace():
+                    j += 1
+                sent_start = j
+                break
+
+        sent_end = para_end
+        if end_pos > start_pos and full_raw[end_pos - 1] in ".!?…":
+            k = end_pos
+            while k < para_end and full_raw[k] in ".!?…":
+                k += 1
+            sent_end = k
+        else:
+            for k in range(end_pos, para_end):
+                if full_raw[k] in ".!?…":
+                    m = k + 1
+                    while m < para_end and full_raw[m] in ".!?…":
+                        m += 1
+                    sent_end = m
+                    break
+
+        if sent_end > sent_start:
+            inner.tag_add("sentence", f"1.0+{sent_start}c", f"1.0+{sent_end}c")
+            inner.tag_configure("sentence", background=resolve_color(ACCENT_SOFT_BG))
+
         start_idx = f"1.0+{start_pos}c"
         end_idx = f"1.0+{end_pos}c"
-
-        if start_pos > read_start_pos:
-            inner.tag_add("read_done", read_start_idx, start_idx)
-            inner.tag_configure("read_done", foreground=done_fg)
-
         inner.tag_add("highlight", start_idx, end_idx)
-        inner.tag_configure("highlight", background=hl_bg, foreground=hl_fg)
+        accent_col = resolve_color(ACCENT_COLOR)
+        try:
+            inner.tag_configure("highlight", underline=True, underlinefg=accent_col)
+        except Exception:
+            inner.tag_configure("highlight", underline=True, foreground=accent_col)
 
-        if end_pos < text_len:
-            inner.tag_add("unread", end_idx, "end-1c")
-            inner.tag_configure("unread", foreground=unread_fg)
-
+        inner.tag_raise("sentence")
         inner.tag_raise("highlight")
         if inner.bbox(start_idx) is None or inner.bbox(end_idx) is None:
             inner.see(start_idx)

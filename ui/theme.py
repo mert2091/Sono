@@ -175,7 +175,7 @@ BTN_HEIGHT_SM = 32
 
 SPACING_CARD = 16
 PADDING_CARD = 16
-RAIL_WIDTH = 240
+RAIL_WIDTH = 256
 
 _theme_listeners: list[Callable[[str], None]] = []
 _reduced_motion: bool = False

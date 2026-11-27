@@ -148,6 +148,9 @@ class App(_AppBase):
         self.configure(fg_color=BG_COLOR)
         self._current_theme = saved_theme
         self._active_view = "home"
+        self._current_doc_title = ""
+        self._last_duration_str = "0:00"
+        self._last_source_lang = "—"
 
         self.tts_service = TTSService()
         self._current_image: Optional[Image.Image] = None
@@ -260,6 +263,32 @@ class App(_AppBase):
 
     # ── Ana Kabuk Kurulumu (Sol Stüdyo Rayı + Sağ Çalışma Alanı) ──
 
+    @staticmethod
+    def _add_kbd_chips(parent, keys: list[str], on_click, border_token, text_token, bg_token="transparent") -> None:
+        wrap = ctk.CTkFrame(parent, fg_color="transparent")
+        wrap.pack(side="right", padx=(0, 10))
+        wrap.bind("<Button-1>", lambda _e: on_click())
+        for idx, k in enumerate(keys):
+            chip = ctk.CTkFrame(
+                wrap,
+                fg_color=bg_token,
+                border_width=1,
+                border_color=border_token,
+                corner_radius=4,
+            )
+            chip.pack(side="left", padx=(0 if idx == 0 else 4, 0))
+            lbl = ctk.CTkLabel(
+                chip,
+                text=k,
+                font=mono_font(10),
+                text_color=text_token,
+                height=18,
+                padx=5,
+            )
+            lbl.pack()
+            chip.bind("<Button-1>", lambda _e: on_click())
+            lbl.bind("<Button-1>", lambda _e: on_click())
+
     def _setup_ui(self) -> None:
         self._load_brand_and_icons()
 
@@ -318,11 +347,14 @@ class App(_AppBase):
             open_row, text="Belge aç", font=ui_font(13, "semibold"), text_color=PRIMARY_BTN_TEXT
         )
         open_lbl.pack(side="left")
-        open_kbd = ctk.CTkLabel(
-            open_row, text="Ctrl+O", font=mono_font(10), text_color=PRIMARY_BTN_TEXT
+        self._add_kbd_chips(
+            open_row,
+            ["Ctrl", "O"],
+            self._open_document_action,
+            border_token=TEXT_SUBTLE,
+            text_token=PRIMARY_BTN_TEXT,
         )
-        open_kbd.pack(side="right", padx=(0, 10))
-        for w in (open_row, open_ico, open_lbl, open_kbd):
+        for w in (open_row, open_ico, open_lbl):
             w.bind("<Button-1>", lambda _e: self._open_document_action())
 
         cap_row = ctk.CTkFrame(
@@ -342,11 +374,14 @@ class App(_AppBase):
             cap_row, text="Ekrandan oku", font=ui_font(13, "semibold"), text_color=TEXT_MAIN
         )
         cap_lbl.pack(side="left")
-        cap_kbd = ctk.CTkLabel(
-            cap_row, text="Ctrl+⇧+O", font=mono_font(10), text_color=TEXT_SUBTLE
+        self._add_kbd_chips(
+            cap_row,
+            ["Ctrl", "⇧", "O"],
+            self._start_screen_capture,
+            border_token=CARD_BORDER,
+            text_token=TEXT_SUBTLE,
         )
-        cap_kbd.pack(side="right", padx=(0, 10))
-        for w in (cap_row, cap_ico, cap_lbl, cap_kbd):
+        for w in (cap_row, cap_ico, cap_lbl):
             w.bind("<Button-1>", lambda _e: self._start_screen_capture())
 
         nav_stack = ctk.CTkFrame(rail, fg_color="transparent")
@@ -415,20 +450,29 @@ class App(_AppBase):
         main_col.grid_rowconfigure(2, weight=1)
         main_col.grid_columnconfigure(0, weight=1)
 
-        header = ctk.CTkFrame(main_col, height=58, fg_color=HEADER_BG, corner_radius=0)
-        header.grid(row=0, column=0, sticky="ew", padx=24, pady=(10, 10))
+        header = ctk.CTkFrame(main_col, height=64, fg_color=HEADER_BG, corner_radius=0)
+        header.grid(row=0, column=0, sticky="ew", padx=32, pady=0)
+        header.grid_propagate(False)
+        header.grid_rowconfigure(0, weight=1)
         header.grid_columnconfigure(1, weight=1)
 
         title_stack = ctk.CTkFrame(header, fg_color="transparent")
         title_stack.grid(row=0, column=0, sticky="w")
 
+        self.crumb_prefix_lbl = ctk.CTkLabel(
+            title_stack,
+            text="Kitaplık / ",
+            font=ui_font(13),
+            text_color=TEXT_SUBTLE,
+        )
+
         self.view_title_lbl = ctk.CTkLabel(
             title_stack,
             text="Stüdyo",
-            font=display_font(16, "semibold"),
+            font=ui_font(13, "semibold"),
             text_color=TEXT_MAIN,
         )
-        self.view_title_lbl.pack(anchor="w")
+        self.view_title_lbl.pack(side="left")
 
         self.view_sub_lbl = ctk.CTkLabel(
             title_stack,
@@ -466,7 +510,7 @@ class App(_AppBase):
         h_sep.grid(row=1, column=0, sticky="ew")
 
         self.stage = ctk.CTkFrame(main_col, fg_color="transparent")
-        self.stage.grid(row=2, column=0, sticky="nsew", padx=24, pady=(14, 16))
+        self.stage.grid(row=2, column=0, sticky="nsew", padx=0, pady=0)
         self.stage.grid_rowconfigure(0, weight=1)
         self.stage.grid_columnconfigure(0, weight=1)
 
@@ -594,10 +638,11 @@ class App(_AppBase):
         view.grid_columnconfigure(0, weight=1)
 
         cards_workspace = ctk.CTkFrame(view, fg_color="transparent")
-        cards_workspace.grid(row=0, column=0, sticky="nsew", pady=(0, SPACING_CARD))
+        cards_workspace.grid(row=0, column=0, sticky="nsew", pady=0)
         cards_workspace.grid_rowconfigure(0, weight=1)
-        cards_workspace.grid_columnconfigure(0, weight=64, uniform="studio")
-        cards_workspace.grid_columnconfigure(1, weight=36, uniform="studio")
+        cards_workspace.grid_columnconfigure(0, weight=1)
+        cards_workspace.grid_columnconfigure(1, weight=0)
+        cards_workspace.grid_columnconfigure(2, minsize=312, weight=0)
 
         self.text_panel = TextPanel(
             cards_workspace,
@@ -611,7 +656,10 @@ class App(_AppBase):
             settings=self.settings,
             header_parent=self._studio_hdr_controls,
         )
-        self.text_panel.grid(row=0, column=0, padx=(0, 12), sticky="nsew")
+        self.text_panel.grid(row=0, column=0, padx=0, sticky="nsew")
+
+        src_sep = ctk.CTkFrame(cards_workspace, width=1, fg_color=DIVIDER_COLOR, corner_radius=0)
+        src_sep.grid(row=0, column=1, sticky="ns")
 
         self.image_panel = ImagePanel(
             cards_workspace,
@@ -621,13 +669,14 @@ class App(_AppBase):
             on_export_txt=self.text_panel._save_as_txt,
             on_export_mp3=self.text_panel._export_audio,
         )
-        self.image_panel.grid(row=0, column=1, padx=(SPACING_CARD // 2, 0), sticky="nsew")
+        self.image_panel.grid(row=0, column=2, padx=0, sticky="nsew")
 
         self.audio_panel = AudioPanel(
             view,
             self.tts_service,
             on_stop=self._on_playback_stopped,
             on_play_request=self.text_panel._handle_read,
+            on_seek_paragraph=self._on_seek_paragraph,
             settings=self.settings,
         )
         self.audio_panel.grid(row=1, column=0, sticky="ew")
@@ -1120,6 +1169,11 @@ class App(_AppBase):
         if view_name in self._views:
             self._views[view_name].grid(row=0, column=0, sticky="nsew")
 
+        if view_name == "home":
+            self.stage.grid_configure(padx=0, pady=0)
+        else:
+            self.stage.grid_configure(padx=24, pady=(14, 16))
+
         if hasattr(self, "_studio_hdr_controls"):
             if view_name == "home":
                 self._studio_hdr_controls.grid(row=0, column=1, sticky="ew", padx=(12, 8))
@@ -1131,9 +1185,9 @@ class App(_AppBase):
         elif view_name == "settings":
             self.settings_panel.select_tab(settings_tab or "shortcuts_features")
 
-        # Üst başlık metni ve pencere başlığı
+        # Üst başlık / ekmek kırıntısı ve pencere başlığı
         v_title, v_sub = self.VIEW_META.get(view_name, ("Stüdyo", ""))
-        self.view_title_lbl.configure(text=v_title)
+        self._update_header_crumb(view_name, v_title)
         self.view_sub_lbl.configure(text=v_sub)
 
         title_map = {
@@ -1340,14 +1394,46 @@ class App(_AppBase):
         self.settings.set_general("theme", new_mode)
         self._apply_theme_mode(new_mode)
 
-    def _update_studio_stats(self, text_val: str, read_words: int = 0, source_lang: str = "—") -> None:
+    def _update_header_crumb(self, view_name: Optional[str] = None, fallback_title: str = "Stüdyo") -> None:
+        vn = view_name or self._active_view
+        if not hasattr(self, "view_title_lbl"):
+            return
+        if vn == "home" and self._current_doc_title:
+            if hasattr(self, "crumb_prefix_lbl"):
+                self.crumb_prefix_lbl.pack(side="left", before=self.view_title_lbl)
+            self.view_title_lbl.configure(text=self._current_doc_title)
+        else:
+            if hasattr(self, "crumb_prefix_lbl"):
+                self.crumb_prefix_lbl.pack_forget()
+            v_t = self.VIEW_META.get(vn, (fallback_title, ""))[0]
+            self.view_title_lbl.configure(text=v_t)
+
+    def _set_active_document_title(self, title: str) -> None:
+        self._current_doc_title = (title or "").strip()
+        if hasattr(self, "text_panel") and hasattr(self.text_panel, "set_document_title"):
+            self.text_panel.set_document_title(self._current_doc_title)
+        self._update_header_crumb()
+
+    def _on_seek_paragraph(self, index: int) -> None:
+        if self.tts_service.is_playing or self.tts_service.is_paused:
+            self.tts_service.seek_to_paragraph(index)
+
+    def _update_studio_stats(
+        self, text_val: str, read_words: int = 0, source_lang: Optional[str] = None
+    ) -> None:
         words = len((text_val or "").split())
         est_sec = max(0, round(words / 2.5)) if words else 0
         mins, secs = divmod(est_sec, 60)
         dur_str = f"{mins}:{secs:02d}"
+        self._last_duration_str = dur_str
+        if source_lang is not None:
+            self._last_source_lang = source_lang
         if hasattr(self, "image_panel") and hasattr(self.image_panel, "update_stats"):
             self.image_panel.update_stats(
-                words=words, read_words=read_words, duration_str=dur_str, source_lang=source_lang
+                words=words,
+                read_words=read_words,
+                duration_str=dur_str,
+                source_lang=self._last_source_lang,
             )
         if hasattr(self, "audio_panel") and hasattr(self.audio_panel, "set_has_text"):
             self.audio_panel.set_has_text(bool((text_val or "").strip()))
@@ -1355,13 +1441,14 @@ class App(_AppBase):
     def _load_from_history(self, item: dict) -> None:
         text = item.get("text_content") or ""
         translation = item.get("translation_content") or ""
+        title = item.get("title") or "Belge"
         self._active_history_id = item.get("id")
         last_p = int(item.get("last_paragraph") or 0)
 
+        self._set_active_document_title(title)
         self.text_panel.set_ocr_text(text)
         if translation:
-            self._update_studio_stats(orig_text, source_lang=result.get("source_language", "—"))
-        self.text_panel.set_translation_text(translation)
+            self.text_panel.set_translation_text(translation)
 
         if self.settings.get_feature("resume_last_position") and last_p > 0:
             self._active_resume_paragraph = last_p
@@ -1389,6 +1476,7 @@ class App(_AppBase):
         self._run_ocr(image)
 
     def _on_document_loaded(self, title: str, text: str) -> None:
+        self._set_active_document_title(title)
         self.text_panel.set_ocr_text(text)
         self._update_studio_stats(text)
         self._refresh_sidebar_recent()
@@ -1455,6 +1543,7 @@ class App(_AppBase):
     ) -> None:
         self.image_panel.set_ocr_scanning(False)
         self._refresh_api_badge()
+        self._set_active_document_title(history_title)
         self.text_panel.set_ocr_text(text)
         self.text_panel.set_status("Metin başarıyla çıkarıldı.")
         self.text_panel.set_progress(1.0)
@@ -1504,6 +1593,7 @@ class App(_AppBase):
 
     def _on_translate_complete(self, result: dict, orig_text: str) -> None:
         self._refresh_api_badge()
+        self._update_studio_stats(orig_text, source_lang=result.get("source_language", "—"))
         self.text_panel.set_translation_text(
             result["translation"],
             source_lang=result.get("source_language", ""),
@@ -1982,6 +2072,9 @@ class App(_AppBase):
         if not para_spans:
             return
         paragraphs = [p for p, _, _ in para_spans]
+        wcs = [max(1, len(p.split())) for p in paragraphs]
+        total_words = sum(wcs)
+        self.audio_panel.set_segments(wcs)
         read_start_pos = base_offset if mode == "selection" else 0
 
         start_idx = 0
@@ -2007,13 +2100,34 @@ class App(_AppBase):
                 if session_gen != self._playback_gen:
                     return
                 self.audio_panel.update_progress(index, len(paragraphs))
+                self.audio_panel.set_para_fraction(0.0)
+                rem_min = max(1, round(sum(wcs[index:]) / 140))
+                self.text_panel.set_reading_meta(
+                    f"Paragraf {index + 1} / {len(paragraphs)} · Kalan ~{rem_min} dk"
+                )
+                self.image_panel.update_stats(
+                    words=total_words,
+                    read_words=sum(wcs[:index]),
+                    duration_str=self._last_duration_str,
+                    source_lang=self._last_source_lang,
+                )
 
             self.after(0, _ui_para)
 
         def on_word_change(para_idx: int, rel_start: int, rel_end: int) -> None:
-            if not self.settings.get_feature("highlight_sentence"):
-                return
             if para_idx < 0 or para_idx >= len(para_spans):
+                return
+            para_len = max(1, len(paragraphs[para_idx]))
+            frac = max(0.0, min(1.0, rel_end / para_len))
+
+            def _ui_frac():
+                if session_gen != self._playback_gen:
+                    return
+                self.audio_panel.set_para_fraction(frac)
+
+            self.after(0, _ui_frac)
+
+            if not self.settings.get_feature("highlight_sentence"):
                 return
             _, p_start, p_end = para_spans[para_idx]
             abs_start = p_start + max(0, rel_start)

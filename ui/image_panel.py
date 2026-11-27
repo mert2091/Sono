@@ -18,22 +18,11 @@ from ui.animations import StudioDropzoneBackdrop
 from ui.crop_window import CropWindow
 from ui.icons import get_icon
 from ui.theme import (
-    ACCENT_COLOR,
-    ACCENT_HOVER,
-    ACCENT_SOFT_BG,
-    ACCENT_SOFT_BORDER,
     ACCENT_SOFT_TEXT,
-    ACCENT_TEXT,
-    BTN_HEIGHT_MAIN,
     CARD_BG,
     CARD_BORDER,
     INNER_BG,
-    PADDING_CARD,
     RADIUS_BTN,
-    RADIUS_CARD,
-    RADIUS_INNER,
-    SECONDARY_BTN,
-    SECONDARY_BTN_BORDER,
     SECONDARY_BTN_HOVER,
     TEXT_MAIN,
     TEXT_MUTED,
@@ -49,6 +38,10 @@ from utils.image_utils import (
 )
 
 logger = get_logger("image_panel")
+
+_PANEL_PAD = 24
+_SECTION_GAP = 16
+_PAPER_BG = ("#FFFFFF", "#F4F2EE")
 
 
 class ImagePanel(ctk.CTkFrame):
@@ -102,14 +95,20 @@ class ImagePanel(ctk.CTkFrame):
 
         # ── 1. Başlık Satırı ──
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.grid(row=0, column=0, padx=PADDING_CARD, pady=(PADDING_CARD, 12), sticky="ew")
+        header_frame.grid(
+            row=0,
+            column=0,
+            padx=_PANEL_PAD,
+            pady=(_PANEL_PAD, _SECTION_GAP),
+            sticky="ew",
+        )
         header_frame.grid_columnconfigure(0, weight=1)
 
         title_lbl = ctk.CTkLabel(
             header_frame,
             text="Kaynak sayfa",
-            font=ui_font(14, "semibold"),
-            text_color=TEXT_MAIN,
+            font=ui_font(13, "semibold"),
+            text_color=TEXT_MUTED,
             anchor="w",
         )
         title_lbl.grid(row=0, column=0, sticky="w")
@@ -118,21 +117,27 @@ class ImagePanel(ctk.CTkFrame):
             header_frame,
             text="Dosya bekleniyor",
             font=mono_font(11),
-            text_color=TEXT_MUTED,
+            text_color=TEXT_SUBTLE,
             fg_color="transparent",
             padx=0,
-            pady=2,
+            pady=0,
         )
         self.info_lbl.grid(row=0, column=1, sticky="e")
 
-        # ── 2. Etkileşimli Bırakma & OCR Tarama Alanı ──
+        # ── 2. Etkileşimli Bırakma & Sayfa Önizleme Alanı ──
         self.drop_frame = ctk.CTkFrame(
             self,
-            corner_radius=RADIUS_INNER,
+            corner_radius=6,
             border_width=0,
             fg_color=INNER_BG,
         )
-        self.drop_frame.grid(row=1, column=0, padx=PADDING_CARD, pady=(0, 12), sticky="nsew")
+        self.drop_frame.grid(
+            row=1,
+            column=0,
+            padx=_PANEL_PAD,
+            pady=(0, _SECTION_GAP),
+            sticky="nsew",
+        )
         self.drop_frame.grid_rowconfigure(0, weight=1)
         self.drop_frame.grid_columnconfigure(0, weight=1)
 
@@ -170,12 +175,13 @@ class ImagePanel(ctk.CTkFrame):
         self.drop_text_sub.pack(pady=(0, 12))
 
         # Sessiz Format Listesi
-        ctk.CTkLabel(
+        self.drop_formats_lbl = ctk.CTkLabel(
             self.placeholder_box,
             text="PNG · JPG · PDF · PPTX · DOCX",
             font=mono_font(11),
             text_color=TEXT_SUBTLE,
-        ).pack()
+        )
+        self.drop_formats_lbl.pack()
 
         # Tıklayınca dosya seçici aç + Hover çerçeve vurgusu
         for clickable in (
@@ -185,12 +191,20 @@ class ImagePanel(ctk.CTkFrame):
             self.upload_icon_lbl,
             self.drop_text_main,
             self.drop_text_sub,
+            self.drop_formats_lbl,
         ):
             clickable.bind("<Enter>", lambda _e: self._backdrop.set_hovered(True), add="+")
             clickable.bind("<Leave>", lambda _e: self._backdrop.set_hovered(False), add="+")
-        for opener in (self.upload_icon_lbl, self.drop_text_main, self.drop_text_sub):
+        for opener in (
+            self._backdrop,
+            self.placeholder_box,
+            self.upload_icon_lbl,
+            self.drop_text_main,
+            self.drop_text_sub,
+            self.drop_formats_lbl,
+        ):
             opener.configure(cursor="hand2")
-            opener.bind("<Button-1>", lambda _e: self._open_file_dialog(), add="+")
+            opener.bind("<Button-1>", self._on_dropzone_click, add="+")
 
         # Görsel önizleme etiketi
         self.preview_image_lbl = ctk.CTkLabel(self.drop_frame, text="", fg_color="transparent")
@@ -210,7 +224,7 @@ class ImagePanel(ctk.CTkFrame):
             text="",
             font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
-            wraplength=280,
+            wraplength=240,
             justify="center",
         )
         self.doc_title_lbl.pack(pady=(0, 4))
@@ -219,33 +233,39 @@ class ImagePanel(ctk.CTkFrame):
             text="",
             font=ui_font(12),
             text_color=TEXT_MUTED,
-            wraplength=270,
+            wraplength=240,
             justify="center",
         )
         self.doc_hint_lbl.pack()
 
-        # ── 3. Sayfa/Slayt Gezintisi ──
+        # ── 3. Sayfa/Slayt Gezintisi (yalnız çok sayfalı belgelerde görünür) ──
         self.pagination_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.pagination_frame.grid(row=2, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
+        self.pagination_frame.grid(
+            row=2,
+            column=0,
+            padx=_PANEL_PAD,
+            pady=(0, _SECTION_GAP),
+            sticky="ew",
+        )
         self.pagination_frame.grid_columnconfigure(1, weight=1)
 
-        self._prev_icon = get_icon("chevron-left", size=14, color=TEXT_MAIN)
-        self._next_icon = get_icon("chevron-right", size=14, color=TEXT_MAIN)
+        self._prev_icon = get_icon("chevron-left", size=14, color=TEXT_MUTED)
+        self._next_icon = get_icon("chevron-right", size=14, color=TEXT_MUTED)
 
         self.prev_page_btn = ctk.CTkButton(
             self.pagination_frame,
             text="Önceki",
             image=self._prev_icon,
             compound="left",
-            width=84,
-            height=32,
-            font=ui_font(12),
+            width=76,
+            height=28,
+            font=ui_font(11),
             command=self._prev_page,
-            fg_color=SECONDARY_BTN,
+            fg_color="transparent",
             border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
+            border_color=CARD_BORDER,
             hover_color=SECONDARY_BTN_HOVER,
-            text_color=TEXT_MAIN,
+            text_color=TEXT_MUTED,
             corner_radius=8,
         )
         self.prev_page_btn.grid(row=0, column=0, padx=(0, 4))
@@ -253,8 +273,8 @@ class ImagePanel(ctk.CTkFrame):
         self.page_status_lbl = ctk.CTkLabel(
             self.pagination_frame,
             text="Sayfa 1 / 1",
-            font=mono_font(12, "bold"),
-            text_color=TEXT_MAIN,
+            font=mono_font(12),
+            text_color=TEXT_SUBTLE,
         )
         self.page_status_lbl.grid(row=0, column=1)
 
@@ -263,146 +283,93 @@ class ImagePanel(ctk.CTkFrame):
             text="Sonraki",
             image=self._next_icon,
             compound="right",
-            width=84,
-            height=32,
-            font=ui_font(12),
+            width=76,
+            height=28,
+            font=ui_font(11),
             command=self._next_page,
-            fg_color=SECONDARY_BTN,
+            fg_color="transparent",
             border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
+            border_color=CARD_BORDER,
             hover_color=SECONDARY_BTN_HOVER,
-            text_color=TEXT_MAIN,
+            text_color=TEXT_MUTED,
             corner_radius=8,
         )
         self.next_page_btn.grid(row=0, column=2, padx=(4, 0))
         self.pagination_frame.grid_remove()
 
-        # ── 4. Ana Eylemler: Dosya Aç & Yapıştır (İkincil) ──
-        actions_frame = ctk.CTkFrame(self, fg_color="transparent")
-        actions_frame.grid(row=3, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
-        actions_frame.grid_columnconfigure((0, 1), weight=1)
-
-        self._open_icon = get_icon("folder-open", size=16, color=TEXT_MAIN, stroke_width=1.5)
-        self._paste_icon = get_icon("clipboard-paste", size=16, color=TEXT_MAIN, stroke_width=1.5)
-
-        self.file_btn = ctk.CTkButton(
-            actions_frame,
-            text=" Dosya aç",
-            image=self._open_icon,
-            compound="left",
-            command=self._open_file_dialog,
-            height=BTN_HEIGHT_MAIN,
-            font=ui_font(13, "semibold"),
-            fg_color=SECONDARY_BTN,
-            border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
-            text_color=TEXT_MAIN,
-            hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=RADIUS_BTN,
-        )
-        self.file_btn.grid(row=0, column=0, padx=(0, 4), sticky="ew")
-
-        self.paste_btn = ctk.CTkButton(
-            actions_frame,
-            text=" Yapıştır",
-            image=self._paste_icon,
-            compound="left",
-            command=self.paste_from_clipboard,
-            height=BTN_HEIGHT_MAIN,
-            font=ui_font(13, "semibold"),
-            fg_color=SECONDARY_BTN,
-            border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
-            text_color=TEXT_MAIN,
-            hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=RADIUS_BTN,
-        )
-        self.paste_btn.grid(row=0, column=1, padx=(4, 0), sticky="ew")
-
-        # ── 5. Görsel Yardımcı Araçları (Lucide ikonlu, çerçevesiz) ──
+        # ── 4. Görsel Yardımcı Araçları (Tek satırda 4 sade metin buton) ──
         tools_frame = ctk.CTkFrame(self, fg_color="transparent")
-        tools_frame.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
-        tools_frame.grid_columnconfigure((0, 1), weight=1)
+        tools_frame.grid(
+            row=3,
+            column=0,
+            padx=_PANEL_PAD,
+            pady=(0, _SECTION_GAP),
+            sticky="ew",
+        )
+        tools_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
-        self._rot_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED, stroke_width=1.5)
-        self._crop_icon = get_icon("crop", size=14, color=TEXT_MUTED, stroke_width=1.5)
-        self._rescan_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED, stroke_width=1.5)
-        self._trash_icon = get_icon("trash", size=14, color=TEXT_MUTED, stroke_width=1.5)
+        tool_btn_cfg = dict(
+            width=0,
+            height=28,
+            font=ui_font(11),
+            fg_color="transparent",
+            border_width=1,
+            border_color=CARD_BORDER,
+            hover_color=SECONDARY_BTN_HOVER,
+            text_color=TEXT_MUTED,
+            text_color_disabled=TEXT_SUBTLE,
+            corner_radius=8,
+            state="disabled",
+        )
 
         self.rotate_btn = ctk.CTkButton(
             tools_frame,
-            text=" Döndür",
-            image=self._rot_icon,
-            compound="left",
+            text="Döndür",
             command=self._rotate_current_image,
-            height=32,
-            font=ui_font(12),
-            fg_color="transparent",
-            hover_color=SECONDARY_BTN,
-            text_color=TEXT_MUTED,
-            corner_radius=8,
-            state="disabled",
+            **tool_btn_cfg,
         )
-        self.rotate_btn.grid(row=0, column=0, padx=(0, 4), pady=(0, 4), sticky="ew")
+        self.rotate_btn.grid(row=0, column=0, padx=(0, 3), sticky="ew")
 
         self.crop_btn = ctk.CTkButton(
             tools_frame,
-            text=" Kırp",
-            image=self._crop_icon,
-            compound="left",
+            text="Kırp",
             command=self._open_crop_window,
-            height=32,
-            font=ui_font(12),
-            fg_color="transparent",
-            hover_color=SECONDARY_BTN,
-            text_color=TEXT_MUTED,
-            corner_radius=8,
-            state="disabled",
+            **tool_btn_cfg,
         )
-        self.crop_btn.grid(row=0, column=1, padx=(4, 0), pady=(0, 4), sticky="ew")
+        self.crop_btn.grid(row=0, column=1, padx=3, sticky="ew")
+
+        self.rescan_btn = ctk.CTkButton(
+            tools_frame,
+            text="Yeniden tara",
+            command=self._rescan_current_image,
+            **tool_btn_cfg,
+        )
+        self.rescan_btn.grid(row=0, column=2, padx=3, sticky="ew")
 
         self.remove_btn = ctk.CTkButton(
             tools_frame,
-            text=" Temizle",
-            image=self._trash_icon,
-            compound="left",
+            text="Temizle",
             command=self.clear_image,
-            height=32,
-            font=ui_font(12),
-            fg_color="transparent",
-            hover_color=SECONDARY_BTN,
-            text_color=TEXT_MUTED,
-            corner_radius=8,
-            state="disabled",
+            **tool_btn_cfg,
         )
-        self.rescan_btn = ctk.CTkButton(
-            tools_frame,
-            text=" Yeniden tara",
-            image=self._rescan_icon,
-            compound="left",
-            command=self._rescan_current_image,
-            height=32,
-            font=ui_font(12),
-            fg_color="transparent",
-            hover_color=SECONDARY_BTN,
-            text_color=TEXT_MUTED,
-            corner_radius=8,
-            state="disabled",
-        )
-        self.rescan_btn.grid(row=1, column=0, padx=(0, 4), sticky="ew")
+        self.remove_btn.grid(row=0, column=3, padx=(3, 0), sticky="ew")
 
-        self.remove_btn.grid(row=1, column=1, padx=(4, 0), sticky="ew")
-
-        # ── 6. 2x2 Belge İstatistik Kutusu ──
+        # ── 5. 2x2 Belge İstatistik Kutusu (.facts) ──
         stats_box = ctk.CTkFrame(
             self,
             fg_color=CARD_BORDER,
-            corner_radius=RADIUS_INNER,
+            corner_radius=12,
             border_width=1,
             border_color=CARD_BORDER,
         )
-        stats_box.grid(row=5, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="ew")
-        stats_box.grid_columnconfigure((0, 1), weight=1)
+        stats_box.grid(
+            row=4,
+            column=0,
+            padx=_PANEL_PAD,
+            pady=(0, _SECTION_GAP),
+            sticky="ew",
+        )
+        stats_box.grid_columnconfigure((0, 1), weight=1, uniform="facts")
 
         self._stat_vals: Dict[str, ctk.CTkLabel] = {}
         stat_defs = [
@@ -416,33 +383,46 @@ class ImagePanel(ctk.CTkFrame):
             cell.grid(
                 row=r_idx,
                 column=c_idx,
-                padx=(0 if c_idx == 0 else 1, 0),
-                pady=(0 if r_idx == 0 else 1, 0),
+                padx=(1 if c_idx == 1 else 0, 0),
+                pady=(1 if r_idx == 1 else 0, 0),
                 sticky="nsew",
             )
             ctk.CTkLabel(
-                cell, text=lbl_txt, font=ui_font(11), text_color=TEXT_SUBTLE, anchor="w"
-            ).pack(anchor="w", padx=12, pady=(8, 2))
+                cell,
+                text=lbl_txt,
+                font=ui_font(12),
+                text_color=TEXT_SUBTLE,
+                anchor="w",
+            ).pack(anchor="w", padx=14, pady=(12, 4))
             val_lbl = ctk.CTkLabel(
-                cell, text=init_val, font=mono_font(14, "bold"), text_color=TEXT_MAIN, anchor="w"
+                cell,
+                text=init_val,
+                font=mono_font(15, "bold"),
+                text_color=TEXT_MAIN,
+                anchor="w",
             )
-            val_lbl.pack(anchor="w", padx=12, pady=(0, 8))
+            val_lbl.pack(anchor="w", padx=14, pady=(0, 12))
             self._stat_vals[key] = val_lbl
 
-        # ── 7. Alt Dışa Aktarma Butonları: [Kopyala] [TXT] [MP3] ──
+        # ── 6. Alt Dışa Aktarma Butonları: [Kopyala] [TXT] [MP3] (.exp) ──
         exp_row = ctk.CTkFrame(self, fg_color="transparent")
-        exp_row.grid(row=6, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
-        exp_row.grid_columnconfigure((0, 1, 2), weight=1)
+        exp_row.grid(
+            row=5,
+            column=0,
+            padx=_PANEL_PAD,
+            pady=(0, _PANEL_PAD),
+            sticky="ew",
+        )
+        exp_row.grid_columnconfigure(0, weight=13)
+        exp_row.grid_columnconfigure(1, weight=10)
+        exp_row.grid_columnconfigure(2, weight=10)
 
-        self._ic_exp_copy = get_icon("copy", size=13, color=TEXT_MAIN, stroke_width=1.5)
-        self._ic_exp_dl = get_icon("download", size=13, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_exp_copy = get_icon("copy", size=14, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_exp_dl = get_icon("download", size=14, color=TEXT_MAIN, stroke_width=1.5)
 
-        self.exp_copy_btn = ctk.CTkButton(
-            exp_row,
-            text=" Kopyala",
-            image=self._ic_exp_copy,
-            compound="left",
-            height=32,
+        exp_btn_cfg = dict(
+            width=0,
+            height=34,
             font=ui_font(12, "semibold"),
             fg_color="transparent",
             border_width=1,
@@ -450,7 +430,15 @@ class ImagePanel(ctk.CTkFrame):
             hover_color=SECONDARY_BTN_HOVER,
             text_color=TEXT_MAIN,
             corner_radius=RADIUS_BTN,
+        )
+
+        self.exp_copy_btn = ctk.CTkButton(
+            exp_row,
+            text=" Kopyala",
+            image=self._ic_exp_copy,
+            compound="left",
             command=lambda: self._on_copy_cb() if self._on_copy_cb else None,
+            **exp_btn_cfg,
         )
         self.exp_copy_btn.grid(row=0, column=0, padx=(0, 4), sticky="ew")
 
@@ -459,15 +447,8 @@ class ImagePanel(ctk.CTkFrame):
             text=" TXT",
             image=self._ic_exp_dl,
             compound="left",
-            height=32,
-            font=ui_font(12, "semibold"),
-            fg_color="transparent",
-            border_width=1,
-            border_color=CARD_BORDER,
-            hover_color=SECONDARY_BTN_HOVER,
-            text_color=TEXT_MAIN,
-            corner_radius=RADIUS_BTN,
             command=lambda: self._on_export_txt_cb() if self._on_export_txt_cb else None,
+            **exp_btn_cfg,
         )
         self.exp_txt_btn.grid(row=0, column=1, padx=4, sticky="ew")
 
@@ -476,15 +457,8 @@ class ImagePanel(ctk.CTkFrame):
             text=" MP3",
             image=self._ic_exp_dl,
             compound="left",
-            height=32,
-            font=ui_font(12, "semibold"),
-            fg_color="transparent",
-            border_width=1,
-            border_color=CARD_BORDER,
-            hover_color=SECONDARY_BTN_HOVER,
-            text_color=TEXT_MAIN,
-            corner_radius=RADIUS_BTN,
             command=lambda: self._on_export_mp3_cb() if self._on_export_mp3_cb else None,
+            **exp_btn_cfg,
         )
         self.exp_mp3_btn.grid(row=0, column=2, padx=(4, 0), sticky="ew")
 
@@ -518,7 +492,7 @@ class ImagePanel(ctk.CTkFrame):
             self.info_lbl.configure(
                 text=get_image_info(self._current_image),
                 fg_color="transparent",
-                text_color=TEXT_MUTED,
+                text_color=TEXT_SUBTLE,
             )
 
     # ── Sürükle-Bırak ve Dosya Yükleme ───────────────────────────
@@ -537,6 +511,14 @@ class ImagePanel(ctk.CTkFrame):
         self._backdrop.set_hovered(False)
         file_path = event.data.strip().strip("{}")
         self._load_any_file(file_path)
+
+    def _on_dropzone_click(self, _event=None) -> None:
+        if self._current_image is None and not self._doc_pages and not self._is_loading_doc:
+            self._open_file_dialog()
+
+    def open_file(self) -> None:
+        """Harici tetikleyiciler (kenar çubuğu / kısayol) için dosya seçiciyi açar."""
+        self._open_file_dialog()
 
     def _open_file_dialog(self) -> None:
         file_path = filedialog.askopenfilename(
@@ -561,8 +543,6 @@ class ImagePanel(ctk.CTkFrame):
         self.info_lbl.configure(
             text="Yükleniyor…", fg_color="transparent", text_color=ACCENT_SOFT_TEXT
         )
-        self.file_btn.configure(state="disabled")
-        self.paste_btn.configure(state="disabled")
         self.pagination_frame.grid_remove()
         self._backdrop.set_scanning(True)
         self._show_doc_state("Belge çözümleniyor…", "Sayfalar çıkarılıyor, lütfen bekleyin.")
@@ -581,8 +561,6 @@ class ImagePanel(ctk.CTkFrame):
     def _on_document_load_success(self, pages: List[Dict[str, Any]], path: str) -> None:
         self._is_loading_doc = False
         self._backdrop.set_scanning(False)
-        self.file_btn.configure(state="normal")
-        self.paste_btn.configure(state="normal")
         self._doc_pages = pages
         self._current_page_idx = 0
 
@@ -597,18 +575,17 @@ class ImagePanel(ctk.CTkFrame):
         self.info_lbl.configure(
             text=f"{len(self._doc_pages)} Sayfa",
             fg_color="transparent",
-            text_color=TEXT_MUTED,
+            text_color=TEXT_SUBTLE,
         )
         self.remove_btn.configure(state="normal")
         self.rotate_btn.configure(state="disabled")
         self.crop_btn.configure(state="disabled")
+        self.rescan_btn.configure(state="disabled")
 
     def _on_document_load_error(self, _err_text: str = "") -> None:
         self._is_loading_doc = False
         self._backdrop.set_scanning(False)
-        self.file_btn.configure(state="normal")
-        self.paste_btn.configure(state="normal")
-        self.info_lbl.configure(text="Açılamadı", fg_color="transparent", text_color=TEXT_MUTED)
+        self.info_lbl.configure(text="Açılamadı", fg_color="transparent", text_color=TEXT_SUBTLE)
         self._show_doc_state(
             "Belge açılamadı",
             "Dosyanın bozuk veya şifreli olmadığından emin olup tekrar deneyin.\n"
@@ -632,7 +609,16 @@ class ImagePanel(ctk.CTkFrame):
         if self._on_document_loaded:
             self._on_document_loaded(title, text)
 
+    def _restore_dropzone_surface(self) -> None:
+        self.drop_frame.configure(fg_color=INNER_BG, corner_radius=6, border_width=0)
+        self._backdrop.place(relx=0, rely=0, relwidth=1, relheight=1)
+        try:
+            self._backdrop.lower()
+        except Exception:
+            pass
+
     def _show_doc_state(self, title: str, hint: str) -> None:
+        self._restore_dropzone_surface()
         self.placeholder_box.grid_remove()
         self.preview_image_lbl.grid_remove()
         try:
@@ -720,19 +706,26 @@ class ImagePanel(ctk.CTkFrame):
     def _set_image(self, image: Image.Image, trigger_callback: bool = True) -> None:
         self._current_image = image
         self.info_lbl.configure(
-            text=get_image_info(image), fg_color="transparent", text_color=TEXT_MUTED
+            text=get_image_info(image), fg_color="transparent", text_color=TEXT_SUBTLE
         )
 
-        preview = resize_for_preview(image, max_width=360, max_height=380)
+        preview = resize_for_preview(image, max_width=236, max_height=320)
         self._ctk_image = ctk.CTkImage(
             light_image=preview,
             dark_image=preview,
             size=(preview.width, preview.height),
         )
 
+        self._backdrop.place_forget()
+        self.drop_frame.configure(
+            fg_color=_PAPER_BG,
+            corner_radius=6,
+            border_width=1,
+            border_color=CARD_BORDER,
+        )
         self.placeholder_box.grid_remove()
         self.doc_state_box.grid_remove()
-        self.preview_image_lbl.grid(row=0, column=0, padx=12, pady=12, sticky="nsew")
+        self.preview_image_lbl.grid(row=0, column=0, padx=14, pady=14, sticky="nsew")
         self.preview_image_lbl.configure(image=self._ctk_image, text="")
 
         self.rotate_btn.configure(state="normal")
@@ -749,13 +742,14 @@ class ImagePanel(ctk.CTkFrame):
         self._doc_pages = []
         self._backdrop.set_scanning(False)
         self.pagination_frame.grid_remove()
+        self._restore_dropzone_surface()
 
         self.preview_image_lbl.grid_remove()
         self.doc_state_box.grid_remove()
         self.placeholder_box.grid(row=0, column=0, padx=16, pady=16)
 
         self.info_lbl.configure(
-            text="Dosya bekleniyor", fg_color="transparent", text_color=TEXT_MUTED
+            text="Dosya bekleniyor", fg_color="transparent", text_color=TEXT_SUBTLE
         )
         self.rotate_btn.configure(state="disabled")
         self.crop_btn.configure(state="disabled")

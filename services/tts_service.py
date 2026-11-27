@@ -352,6 +352,16 @@ class TTSService:
             self._is_paused = False
         self._skip_event.set()
 
+    def seek_to_paragraph(self, index: int) -> None:
+        """Belirtilen paragraf indeksine atlar."""
+        if not self._paragraphs:
+            return
+        target_idx = max(0, min(int(index), len(self._paragraphs) - 1))
+        with self._state_lock:
+            self._pending_seek_index = target_idx
+            self._is_paused = False
+        self._skip_event.set()
+
     @staticmethod
     def _estimate_para_seconds(text: str) -> float:
         words = max(1, len(text.split()))
@@ -499,7 +509,8 @@ class TTSService:
                     pygame.time.wait(30)
 
                 self._is_playing = False
-                if skipped:
+                if skipped or self._skip_event.is_set():
+                    self._skip_event.clear()
                     with self._state_lock:
                         target = self._pending_seek_index
                         self._pending_seek_index = None
