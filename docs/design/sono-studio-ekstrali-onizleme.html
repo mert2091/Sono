@@ -1,0 +1,367 @@
+﻿<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Sono · Stüdyo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Direction
+   Product   Belgeyi metne çevirip sesli okuyan Windows uygulaması; uzun metni okumak zor gelenler için
+   Character sabırlı, odaklı, biraz sıcak
+   World     gece okuma lambası altında açık bir kitap sayfası
+   Moments   okunan sayfa (cümle bandı + kelime izi) ve kaynak sayfada okunan bölümün çerçevesi
+   Signature okuma cetveli: okunan satırı izleyen bant; oynatıcıda paragraf paragraf bölünmüş ilerleme */
+:root{
+  --bg0:#0f0f10;--bg:#141415;--card:#19191b;--raised:#232325;
+  --line:rgba(237,237,237,.08);--line2:rgba(237,237,237,.12);
+  --t1:#ededed;--t2:#a1a1a6;--t3:#85858b;
+  --acc:#8aa2ff;--acc-ink:#0f1220;--acc-soft:rgba(138,162,255,.12);--acc-line:rgba(138,162,255,.55);
+  --btn:#ededed;--btn-ink:#141415;--paper:#f4f2ee;--paper-ink:#c9c5bd;
+  --hi:inset 0 1px 0 rgba(255,255,255,.06);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+.light{
+  --bg0:#f1ede5;--bg:#f7f4ee;--card:#fdfbf7;--raised:#efe9df;
+  --line:rgba(31,27,22,.18);--line2:rgba(31,27,22,.26);
+  --t1:#1f1b16;--t2:#5e554a;--t3:#7b7266;
+  --acc:#3d5bd9;--acc-ink:#fff;--acc-soft:rgba(61,91,217,.09);--acc-line:rgba(61,91,217,.6);
+  --btn:#1f1b16;--btn-ink:#fdfbf7;--paper:#fff;--paper-ink:#d9d4cb;
+  --hi:0 1px 2px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100vh;overflow:hidden}
+body{font:400 14px/20px Inter,"Segoe UI",sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+svg.i{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{display:grid;grid-template-columns:256px 1fr;height:100vh}
+
+/* Sidebar */
+aside{background:var(--bg0);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px}
+.brand{display:flex;align-items:center;gap:10px;height:36px;padding:0 8px;margin-bottom:16px}
+.brand b{font-weight:600;font-size:16px;letter-spacing:0}
+.actions{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.btn{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--raised);color:var(--t1);font:500 13px/1 Inter,sans-serif;box-shadow:var(--hi);transition:background-color .15s var(--ease)}
+.btn.primary{background:var(--btn);color:var(--btn-ink);border-color:transparent}
+.btn .sp{flex:1}.btn{white-space:nowrap}
+.kbd{display:inline-flex;gap:4px}
+.kbd span{font:500 11px/1 "JetBrains Mono",monospace;min-width:20px;height:20px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;border:1px solid var(--line2);color:var(--t3);background:transparent}
+.btn.primary .kbd span{border-color:rgba(128,128,128,.35);color:inherit;opacity:.6}
+nav a{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;color:var(--t2);text-decoration:none;margin-bottom:2px}
+nav a .n{margin-left:auto;font-size:12px;color:var(--t3)}
+nav a.on{background:var(--raised);color:var(--t1);box-shadow:var(--hi)}
+nav a.on svg{color:var(--t1)}
+.label{font-size:12px;color:var(--t3);padding:0 10px;margin:24px 0 8px}
+.recent a{height:auto;padding:8px 10px;flex-direction:column;align-items:stretch;gap:6px}
+.recent .row{display:flex;justify-content:space-between;gap:8px}
+.recent .row span:first-child{color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent .row span:last-child{font-size:12px;color:var(--t3)}
+.bar{height:2px;background:var(--line2);border-radius:1px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--t3)}
+.recent a.cur .bar i{background:var(--acc)}
+.foot{margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;color:var(--t3);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4cc38a;margin-right:8px;vertical-align:1px}
+.light .dot{background:#16a34a}
+
+/* Main */
+main{display:grid;grid-template-rows:64px 1fr 80px;min-width:0}
+header{display:flex;align-items:center;gap:16px;padding:0 32px;border-bottom:1px solid var(--line)}
+.crumb{color:var(--t3)}.crumb b{color:var(--t1);font-weight:500}
+.seg{display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--bg0);border:1px solid var(--line);margin-left:24px}
+.light .seg{background:var(--raised)}
+.seg a{height:28px;padding:0 12px;display:flex;align-items:center;border-radius:7px;color:var(--t2);font-weight:500;font-size:13px}
+.seg a.on{background:var(--raised);color:var(--t1);box-shadow:var(--hi)}
+.light .seg a.on{background:var(--card)}
+.hr{margin-left:auto;display:flex;gap:8px}
+.ghost{height:32px;padding:0 10px;display:flex;align-items:center;gap:8px;border-radius:8px;color:var(--t2);font-weight:500;font-size:13px;border:1px solid var(--line)}
+
+.body{display:grid;grid-template-columns:1fr 312px;min-height:0}
+.read{overflow:hidden;padding:40px 48px 0 32px;position:relative}
+.meta{display:flex;gap:16px;color:var(--t3);font-size:12px;margin:0 0 12px 48px}
+.read h1{font:400 32px/1.15 Inter,sans-serif;letter-spacing:-.01em;margin:0 0 32px 48px;max-width:660px}
+.p{display:grid;grid-template-columns:48px 1fr;margin-bottom:24px;max-width:760px}
+.p .no{font:400 12px/32px "JetBrains Mono",monospace;color:var(--t3);position:relative}
+.p .tx{font:400 19px/32px "Atkinson Hyperlegible","Segoe UI",sans-serif;letter-spacing:.01em;color:var(--t3)}
+.p.past .tx{color:var(--t2)}
+.p.now .tx{color:var(--t1)}
+.p.now .no{color:var(--acc)}
+.p.now .no::before{content:"";position:absolute;left:-12px;top:6px;bottom:6px;width:2px;border-radius:1px;background:var(--acc);height:calc(100% - 12px)}
+.p.now{position:relative}
+.p.now .no{height:100%}
+.sent{background:var(--acc-soft);border-radius:4px;padding:3px 0;box-decoration-break:clone;-webkit-box-decoration-break:clone;box-shadow:0 0 0 3px var(--acc-soft)}
+.w{text-decoration:underline;text-decoration-color:var(--acc);text-decoration-thickness:2px;text-underline-offset:6px}
+.fade{position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(to bottom,transparent,var(--bg))}
+
+/* Source column */
+.src{border-left:1px solid var(--line);padding:24px;display:flex;flex-direction:column;gap:16px;background:var(--bg)}
+.src h3{font-weight:500;font-size:13px;color:var(--t2);display:flex;justify-content:space-between}
+.src h3 span{color:var(--t3);font-weight:400}
+.page{background:var(--paper);border-radius:6px;aspect-ratio:1/1.36;padding:22px 20px;position:relative;box-shadow:0 1px 0 rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.18)}
+.light .page{box-shadow:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);border:1px solid var(--line)}
+.page i{display:block;height:5px;border-radius:2px;background:var(--paper-ink);margin-bottom:7px}
+.page .h{height:9px;width:46%;background:#a9a49b;margin-bottom:14px}
+.page .gap{height:8px;background:none}
+.frame{position:absolute;left:12px;right:12px;border:1.5px solid var(--acc);border-radius:5px;background:rgba(138,162,255,.08)}
+.light .frame{background:rgba(61,91,217,.06)}
+.pager{display:flex;align-items:center;justify-content:space-between;color:var(--t3);font-size:12px}
+.thumbs{display:flex;gap:6px}
+.thumbs i{width:18px;height:24px;border-radius:3px;background:var(--raised);border:1px solid var(--line)}
+.thumbs i.on{border-color:var(--acc-line);background:var(--card)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.facts div{background:var(--card);padding:12px 14px}
+.facts small{display:block;font-size:12px;color:var(--t3);margin-bottom:4px}
+.facts b{font:500 15px/1 "JetBrains Mono",monospace;font-variant-numeric:tabular-nums}
+.exp{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px}
+.exp .btn{padding:0 8px;justify-content:center;height:34px;background:transparent}
+
+/* Player */
+.player{border-top:1px solid var(--line);display:flex;align-items:center;gap:20px;padding:0 32px;background:var(--bg0)}
+.light .player{background:var(--card)}
+.ctl{display:flex;align-items:center;gap:6px}
+.ib{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--t2)}
+.play{width:44px;height:44px;border-radius:50%;background:var(--btn);color:var(--btn-ink);display:flex;align-items:center;justify-content:center}
+.play svg{fill:currentColor;stroke:none;width:18px;height:18px}
+.time{font-size:12px;color:var(--t3);width:44px}
+.time.r{text-align:right}
+.track{flex:1;display:flex;gap:3px;align-items:center;height:32px}
+.track i{height:4px;border-radius:2px;background:var(--line2)}
+.track i.done{background:var(--t3)}
+.track i.now{height:4px;background:linear-gradient(to right,var(--acc) 0 58%,var(--line2) 58%);position:relative}
+.track i.now::after{content:"";position:absolute;left:58%;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--t1);box-shadow:0 0 0 3px var(--bg0)}
+.light .track i.now::after{box-shadow:0 0 0 3px var(--card)}
+.pill{height:32px;padding:0 10px;display:flex;align-items:center;gap:8px;border-radius:8px;border:1px solid var(--line);color:var(--t1);font-size:13px}
+.pill small{color:var(--t3);font-size:12px}
+
+.view{display:none !important;min-height:0;flex:1}
+.view.on{display:grid !important}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.card-box h4{font-size:15px;font-weight:600}
+.card-box p{font-size:13px;color:var(--t2);line-height:1.5}
+.split-read{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.sbs-col{border-left:1px solid var(--line);padding-left:20px;color:var(--t2)}
+.lib-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+.set-grid{display:grid;grid-template-columns:220px 1fr;gap:20px;padding:24px 32px;overflow:auto}
+.set-nav a{display:flex;align-items:center;height:34px;padding:0 12px;border-radius:8px;color:var(--t2);cursor:pointer;margin-bottom:4px}
+.set-nav a.on{background:var(--raised);color:var(--t1);font-weight:500}
+.opt-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+.opt-row:last-child{border-bottom:0}
+.tog{width:38px;height:22px;border-radius:11px;background:var(--acc);position:relative;cursor:pointer}
+.tog::after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round"><path d="M16.5 7.5A4.5 4.5 0 1 0 12 12" stroke="var(--t1)"/><path d="M12 12a4.5 4.5 0 1 1-4.5 4.5" stroke="var(--acc)"/></svg>
+      <b>Sono</b>
+    </div>
+    <div class="actions">
+      <a class="btn primary"><i data-i="plus"></i>Belge aç<span class="sp"></span><span class="kbd"><span>Ctrl</span><span>O</span></span></a>
+      <a class="btn"><i data-i="scan"></i>Ekrandan oku<span class="sp"></span><span class="kbd"><span>Ctrl</span><span>⇧</span><span>O</span></span></a>
+    </div>
+    <nav id="main-nav">
+      <a class="on" data-v="studio" onclick="showView('studio',this)"><i data-i="file"></i>Stüdyo</a>
+      <a data-v="library" onclick="showView('library',this)"><i data-i="library"></i>Kitaplık<span class="n mono">24</span></a>
+      <a data-v="tools" onclick="showView('tools',this)"><i data-i="clock"></i>Araçlar</a>
+    </nav>
+    <div class="label">Okumaya devam et</div>
+    <nav class="recent">
+      <a class="cur"><div class="row"><span>Uyku ve hafıza.pdf</span><span class="mono">%33</span></div><div class="bar"><i style="width:33%"></i></div></a>
+      <a><div class="row"><span>Fizik 2. ünite özet.docx</span><span class="mono">%71</span></div><div class="bar"><i style="width:71%"></i></div></a>
+      <a><div class="row"><span>Ekran yakalama · 22:48</span><span class="mono">%100</span></div><div class="bar"><i style="width:100%"></i></div></a>
+      <a><div class="row"><span>Kulüp sunumu.pptx</span><span class="mono">%8</span></div><div class="bar"><i style="width:8%"></i></div></a>
+    </nav>
+    <nav style="margin-top:auto"><a data-v="settings" onclick="showView('settings',this)"><i data-i="sliders"></i>Ayarlar</a></nav>
+    <div class="foot"><span><span class="dot"></span>Gemini bağlı</span><span class="mono">v1.1.0</span></div>
+  </aside>
+
+  <main>
+    <header>
+      <span class="crumb">Kitaplık / <b>Uyku ve hafıza.pdf</b></span>
+      <div class="seg" id="studio-tabs">
+        <a class="on" onclick="showTab('text',this)">Metin</a>
+        <a onclick="showTab('trans',this)">Çeviri</a>
+        <a onclick="showTab('summary',this)">Özet</a>
+        <a onclick="showTab('qa',this)">Soru-Cevap</a>
+      </div>
+      <div class="hr">
+        <a class="ghost" style="cursor:pointer"><i data-i="lang"></i>Hedef: Türkçe <i data-i="down"></i></a>
+        <a class="ghost" style="cursor:pointer" onclick="toggleSbs(this)">Yan yana</a>
+        <a class="ghost"><i data-i="type"></i>19 px</a>
+        <a class="ghost" style="width:32px;padding:0;justify-content:center;cursor:pointer" onclick="document.body.classList.toggle('light')"><i data-i="moon"></i></a>
+      </div>
+    </header>
+
+    <div class="body view on" id="v-studio">
+      <section class="read">
+        <div id="tab-text" class="stab">
+
+        <div class="meta mono"><span>Bölüm 3</span><span>Sayfa 4 / 12</span><span>Kalan ~9 dk</span></div>
+        <h1>Uyku ve öğrenme</h1>
+        <div class="p past"><span class="no">01</span><p class="tx">Uyku, gün boyunca edindiğimiz bilgilerin kalıcı hale geldiği dönemdir. Araştırmalar, öğrendikten sonra uyuyan katılımcıların ertesi gün daha fazla ayrıntı hatırladığını gösteriyor.</p></div>
+        <div class="p now"><span class="no">02</span><p class="tx">Bu süreçte hipokampus, gün içinde kaydettiği deneyimleri yeniden oynatır. <span class="sent">Derin uyku sırasında bu kayıtlar beyin kabuğuna <span class="w">aktarılır</span> ve eski bilgilerle bağlantı kurar.</span> Bu yüzden sınavdan önceki geceyi uykusuz geçirmek, çalışılan konunun büyük kısmını geri getirmeyi zorlaştırır.</p></div>
+        <div class="p"><span class="no">03</span><p class="tx">REM evresi ise farklı bir rol üstlenir. Duygusal anılar bu evrede işlenir ve yaşandıkları andaki yoğunluklarını kısmen kaybeder.</p></div>
+        <div class="p"><span class="no">04</span><p class="tx">Uykunun yalnızca süresi değil düzeni de önemlidir. Her gece aynı saatte yatmak, evrelerin gece boyunca dengeli dağılmasına yardım eder.</p></div>
+        <div class="fade"></div>
+        
+        </div>
+        <div id="tab-trans" class="stab" style="display:none">
+          <div class="meta mono"><span>Çeviri</span><span>Otomatik · Hedef: Türkçe</span></div>
+          <h1>Sleep and Learning</h1>
+          <div class="p"><span class="no">01</span><p class="tx">Sleep is the period during which the information we acquire throughout the day becomes permanent.</p></div>
+          <div class="p"><span class="no">02</span><p class="tx">During deep sleep, these recordings are transferred to the neocortex and connected with existing memories.</p></div>
+        </div>
+        <div id="tab-summary" class="stab" style="display:none">
+          <div class="meta mono"><span>Özet</span><span>Otomatik · 3 ana madde</span></div>
+          <h1>Uyku ve öğrenme — Özet</h1>
+          <div class="p"><span class="no">•</span><p class="tx">Uyku, gün içinde öğrenilen bilgilerin kalıcı hafızaya aktarılmasını sağlar.</p></div>
+          <div class="p"><span class="no">•</span><p class="tx">Derin uyku sırasında hipokampus kayıtları beyin kabuğuna taşır; uykusuzluk hatırlamayı zorlaştırır.</p></div>
+          <div class="p"><span class="no">•</span><p class="tx">REM evresi duygusal anıları işler; düzenli uyku saati öğrenme verimini artırır.</p></div>
+        </div>
+        <div id="tab-qa" class="stab" style="display:none">
+          <div class="meta mono"><span>Soru-Cevap</span><span>Belgeye sor</span></div>
+          <h1>Belge hakkında sor</h1>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <input type="text" placeholder="Bu belgeyle ilgili bir soru sor..." style="flex:1;height:38px;border-radius:8px;border:1px solid var(--line2);background:var(--raised);color:var(--t1);padding:0 12px;font:inherit">
+            <a class="btn primary" style="height:38px;cursor:pointer">Sor</a>
+          </div>
+        </div>
+<div id="sbs-box" class="sbs-col" style="display:none;margin-top:16px">
+          <div class="meta mono"><span>Çeviri · İngilizce</span></div>
+          <p class="tx" style="margin-top:8px">During deep sleep, these recordings are transferred to the neocortex and connected with existing memories.</p>
+        </div>
+
+      </section>
+
+      <aside class="src" style="background:var(--bg);border-right:0;padding:24px">
+        <h3>Kaynak sayfa <span class="mono">PDF</span></h3>
+        <div class="page">
+          <i class="h"></i>
+          <i style="width:96%"></i><i style="width:92%"></i><i style="width:60%"></i><i class="gap"></i>
+          <i style="width:95%"></i><i style="width:97%"></i><i style="width:90%"></i><i style="width:94%"></i><i style="width:38%"></i><i class="gap"></i>
+          <i style="width:93%"></i><i style="width:88%"></i><i style="width:52%"></i><i class="gap"></i>
+          <i style="width:96%"></i><i style="width:91%"></i><i style="width:70%"></i><i class="gap"></i>
+          <i style="width:94%"></i><i style="width:86%"></i><i style="width:96%"></i><i style="width:44%"></i>
+          <div class="frame" style="top:86px;height:66px"></div>
+        </div>
+        <div class="pager"><span class="mono">Sayfa 4 / 12</span><div class="thumbs"><i></i><i></i><i class="on"></i><i></i><i></i></div></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <a class="btn" style="height:28px;padding:0 6px;justify-content:center;font-size:11px;background:transparent">Döndür</a>
+          <a class="btn" style="height:28px;padding:0 6px;justify-content:center;font-size:11px;background:transparent">Kırp</a>
+          <a class="btn" style="height:28px;padding:0 6px;justify-content:center;font-size:11px;background:transparent">Yeniden tara</a>
+          <a class="btn" style="height:28px;padding:0 6px;justify-content:center;font-size:11px;background:transparent">Temizle</a>
+        </div>
+        <div class="facts">
+          <div><small>Kelime</small><b>2.840</b></div>
+          <div><small>Okunan</small><b>936</b></div>
+          <div><small>Süre</small><b>13:40</b></div>
+          <div><small>Kaynak dil</small><b>TR</b></div>
+        </div>
+        <div class="exp">
+          <a class="btn"><i data-i="copy"></i>Kopyala</a>
+          <a class="btn"><i data-i="dl"></i>TXT</a>
+          <a class="btn"><i data-i="dl"></i>MP3</a>
+        </div>
+      </aside>
+    </div>
+
+
+    <div class="view" id="v-library" style="padding:28px 32px;overflow:auto">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <h2 style="font-size:18px;font-weight:600">Kitaplık (24)</h2>
+          <a class="btn" style="height:32px;font-size:12px">Tümünü temizle</a>
+        </div>
+        <div class="lib-row"><div><b>Uyku ve hafıza.pdf</b><div style="font-size:12px;color:var(--t3)">PDF · 2.840 kelime · %33 okundu</div></div><a class="btn primary" style="height:32px" onclick="showView('studio',document.querySelector('[data-v=studio]'))">Devam et</a></div>
+        <div class="lib-row"><div><b>Fizik 2. ünite özet.docx</b><div style="font-size:12px;color:var(--t3)">DOCX · 1.420 kelime · %71 okundu</div></div><a class="btn" style="height:32px">Aç</a></div>
+        <div class="lib-row"><div><b>Ekran yakalama · 22:48</b><div style="font-size:12px;color:var(--t3)">OCR · 310 kelime · %100 okundu</div></div><a class="btn" style="height:32px">Aç</a></div>
+      </div>
+    </div>
+
+    <div class="view" id="v-tools" style="padding:28px 32px;overflow:auto">
+      <div class="grid2" style="align-content:start">
+        <div class="card-box"><h4>Ekran Yakala & Oku</h4><p>Ekranı karartıp seçtiğin alanı anında metne çevirir ve seslendirir.</p><a class="btn primary" style="width:fit-content">Başlat (Ctrl+⇧+O)</a></div>
+        <div class="card-box"><h4>Toplu Belge Birleştir & MP3</h4><p>Birden fazla görsel, PDF veya Word dosyasını tek metinde ve tek MP3'te toplar.</p><a class="btn" style="width:fit-content">Dosyaları seç</a></div>
+        <div class="card-box"><h4>Uyku Zamanlayıcısı</h4><p>Belirlediğin dakika sonunda sesli okumayı otomatik durdurur.</p><a class="btn" style="width:fit-content">15 dk ayarla</a></div>
+        <div class="card-box"><h4>Pano İzleyici</h4><p>Kopyaladığın uzun metinleri otomatik yakalayıp okuma önerisi sunar.</p><a class="btn" style="width:fit-content">Aktif</a></div>
+      </div>
+    </div>
+
+    <div class="view set-grid" id="v-settings">
+      <div class="set-nav">
+        <a class="on">Genel & Tema</a>
+        <a>Kısayollar & Özellikler</a>
+        <a>Ses ve Okuma</a>
+        <a>Yapay Zeka (API)</a>
+        <a>Güncellemeler</a>
+      </div>
+      <div class="card-box">
+        <h4>Genel & Görünüm</h4>
+        <div class="opt-row"><div><b>Tema</b><div style="font-size:12px;color:var(--t3)">Koyu Grafit veya Açık Kağıt stüdyo teması</div></div><a class="btn" style="height:32px" onclick="document.body.classList.toggle('light')">Koyu / Açık Değiştir</a></div>
+        <div class="opt-row"><div><b>Kaldığı yerden devam et</b><div style="font-size:12px;color:var(--t3)">Kitaplık belgelerini son paragraftan başlat</div></div><div class="tog"></div></div>
+        <div class="opt-row"><div><b>Cümle & kelime vurgusu</b><div style="font-size:12px;color:var(--t3)">Seslendirme sırasında okunan kelimeyi takip et</div></div><div class="tog"></div></div>
+        <div class="opt-row"><div><b>Sistem tepsisine küçült</b><div style="font-size:12px;color:var(--t3)">Pencere kapatılınca arka planda hazır bekle</div></div><div class="tog"></div></div>
+      </div>
+    </div>
+
+    <div class="player">
+      <div class="ctl">
+        <a class="ib"><i data-i="back"></i></a>
+        <a class="play"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></a>
+        <a class="ib"><i data-i="fwd"></i></a>
+      </div>
+      <span class="time mono">4:31</span>
+      <div class="track">
+        <i class="done" style="flex:3"></i><i class="done" style="flex:5"></i><i class="done" style="flex:2"></i><i class="done" style="flex:4"></i><i class="done" style="flex:3"></i><i class="now" style="flex:4"></i><i style="flex:3"></i><i style="flex:5"></i><i style="flex:2"></i><i style="flex:4"></i><i style="flex:6"></i><i style="flex:3"></i><i style="flex:4"></i><i style="flex:2"></i><i style="flex:5"></i>
+      </div>
+      <span class="time r mono">13:40</span>
+      <a class="pill mono">1.0× <i data-i="down"></i></a>
+      <a class="pill"><i data-i="vol"></i>Emel <small>Türkçe · kadın</small><i data-i="down"></i></a>
+    </div>
+  </main>
+</div>
+<script>
+const I={
+plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
+file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+library:'<path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+sliders:'<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>',
+lang:'<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+type:'<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>',
+moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+copy:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+back:'<polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/>',
+fwd:'<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/>',
+vol:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>',
+down:'<path d="m6 9 6 6 6-6"/>'};
+document.querySelectorAll('[data-i]').forEach(e=>{e.outerHTML='<svg class="i" viewBox="0 0 24 24">'+I[e.dataset.i]+'</svg>'});
+if(location.hash==='#light')document.body.classList.add('light');
+
+function showView(id, el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+id).classList.add('on');
+  document.querySelectorAll('aside nav a').forEach(a=>a.classList.remove('on'));
+  if(el) el.classList.add('on');
+}
+function showTab(id, el){
+  document.querySelectorAll('.stab').forEach(t=>t.style.display='none');
+  document.getElementById('tab-'+id).style.display='block';
+  document.querySelectorAll('#studio-tabs a').forEach(a=>a.classList.remove('on'));
+  if(el) el.classList.add('on');
+}
+function toggleSbs(btn){
+  var b=document.getElementById('sbs-box');
+  var on=b.style.display==='none';
+  b.style.display=on?'block':'none';
+  btn.style.background=on?'var(--raised)':'transparent';
+}
+
+</script>
+</body>
+</html>

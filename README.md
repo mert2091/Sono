@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/sürüm-1.0.0-6366F1?style=flat-square" alt="Sürüm 1.0.0" />
+  <img src="https://img.shields.io/badge/sürüm-1.1-3D5BD9?style=flat-square" alt="Sürüm 1.1" />
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?style=flat-square&logo=windows&logoColor=white" alt="Windows 10/11" />
   <img src="https://img.shields.io/badge/python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/lisans-MIT-22C55E?style=flat-square" alt="MIT Lisansı" />
@@ -28,21 +28,25 @@
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="docs/screenshots/translate-light.png" alt="Açık Tema — Yan Yana Çeviri" /><br />
-      <sub><strong>Açık Tema &amp; Yan Yana Çeviri</strong> — Türkçe ↔ İngilizce canlı karşılaştırma</sub>
+      <img src="docs/screenshots/studio-dark.png" alt="Koyu Tema — Stüdyo" /><br />
+      <sub><strong>Koyu · Grafit Stüdyo</strong> — Çerçevesiz okuma sayfası, paragraf segmentli oynatıcı</sub>
     </td>
     <td width="50%" align="center">
-      <img src="docs/screenshots/tools-dark.png" alt="Akıllı Araçlar" /><br />
-      <sub><strong>Akıllı Araçlar</strong> — Ekran yakalama, toplu MP3 ve uyku zamanlayıcısı</sub>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center">
-      <img src="docs/screenshots/settings-dark.png" alt="Ayarlar ve Klavye Kısayolları" width="75%" /><br />
-      <sub><strong>Ayarlar &amp; Kısayollar</strong> — Özelleştirilebilir global kısayollar ve erişilebilirlik</sub>
+      <img src="docs/screenshots/translate-light.png" alt="Açık Tema — Kağıt Stüdyo" /><br />
+      <sub><strong>Açık · Kağıt Stüdyo</strong> — Gündüz okuma netliği, cümle bandı ve kelime vurgusu</sub>
     </td>
   </tr>
 </table>
+
+## v1.1 Yenilikleri
+
+- **Yeni Stüdyo Arayüzü:** Koyu Grafit / Açık Kağıt temaları, 256 px kenar çubuğu, üst çubuk sekmeleri ve çerçevesiz kitap sayfası okuma alanı.
+- **Sistem (Windows) Teması & Kalıcılık:** Windows temasını otomatik izleyen Sistem seçeneği ve kalıcı tema kaydı.
+- **Paragraf Segmentli Oynatıcı:** Tıklanabilir paragraf parçaları, kelime bazlı ilerleme ve hız seçici (`0.5x – 2.0x`).
+- **Otomatik Çeviri, Özet ve Anlamlı Çeviri:** Sekmeye geçince otomatik çeviri/özet hazırlama ve bağlamı koruyan gelişmiş çeviri istemi.
+- **Görsel/Taranmış PDF Desteği:** Metin katmanı olmayan PDF'ler otomatik olarak Gemini OCR ile okunur.
+- **Akıllı Otomatik Kaydırma & Sayfa Geçişi:** Uzun metinlerde otomatik kaydırma ve çok sayfalı belgelerde kaynak sayfa takibi.
+- **Temiz Veri Depolama & Kurulum:** `.exe` modunda veriler `%APPDATA%\Sono` klasöründe saklanır; `SonoSetup-1.1.exe` kurulum sihirbazı eklendi.
 
 ## Özellikler
 
@@ -72,7 +76,7 @@ Python kurulumu gerekmez:
 
 1. **[Releases](https://github.com/mert2091/Sono/releases)** sayfasından en güncel `Sono.exe` dosyasını indirin ve istediğiniz bir klasöre koyun (ör. `C:\Uygulamalar\Sono\Sono.exe`).
 2. `Sono.exe` dosyasına çift tıklayarak başlatın.
-3. Uygulama ilk çalıştığında gerekli kişisel dosyaları (`.env`, `settings.json`, `history.db`, `logs/sono.log`) otomatik olarak `Sono.exe` ile aynı klasörde oluşturur.
+3. Uygulama ilk çalıştığında gerekli kişisel dosyaları (`.env`, `settings.json`, `history.db`, `logs/sono.log`) otomatik olarak `%APPDATA%\Sono` klasöründe oluşturur; ayrıca tek tıkla kurulum için `SonoSetup-1.1.exe` de sunulmaktadır.
 
 > **Not:** Uygulama imzasız açık kaynak bir `.exe` olduğu için Windows SmartScreen ilk açılışta *"Windows bilgisayarınızı korudu"* uyarısı gösterebilir. **Ek bilgi → Yine de çalıştır** seçeneğiyle devam edebilirsiniz.
 
@@ -112,7 +116,7 @@ Tüm kısayollar **Ayarlar → Kısayollar ve özellikler** ekranından özelle�
 Hayır. OCR, çeviri, AI araçları (Google Gemini API) ve sesli okuma (Microsoft Edge-TTS) aktif internet bağlantısı gerektirir. Yerel Kitaplık ve belge açma çevrimdışı çalışır.
 
 **API anahtarım ve belgelerim nereye kaydediliyor?**
-API anahtarınız yalnızca uygulamanın bulunduğu klasördeki `.env` dosyasına, ayarlarınız `settings.json`'a ve Kitaplık geçmişiniz `history.db`'ye kaydedilir. Anahtar hiçbir zaman `logs/sono.log` dosyasına, hata mesajlarına veya `.exe` içine yazılmaz.
+API anahtarınız yalnızca `%APPDATA%\Sono\.env` dosyasına, ayarlarınız `settings.json`'a ve Kitaplık geçmişiniz `history.db`'ye kaydedilir (geliştirme modunda proje kökünde tutulur). Anahtar hiçbir zaman `logs/sono.log` dosyasına, hata mesajlarına veya `.exe` içine yazılmaz.
 
 **Bir hata alırsam ayrıntıları nerede görebilirim?**
 Teknik hata ayrıntıları uygulama klasöründeki `logs/sono.log` dosyasına kaydedilir. **Ayarlar → Yapay zeka → Hata kaydını aç** düğmesiyle doğrudan açabilirsiniz.
