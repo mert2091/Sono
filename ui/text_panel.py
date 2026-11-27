@@ -22,6 +22,7 @@ from services.export_service import (
 from ui.animations import AcousticProgressRibbon, SlidingTabBar
 from ui.icons import get_icon
 from ui.theme import (
+    BG_COLOR,
     ACCENT_COLOR,
     ACCENT_HOVER,
     ACCENT_SOFT_BG,
@@ -91,14 +92,14 @@ class TextPanel(ctk.CTkFrame):
         on_ask_question: Optional[Callable[[str], None]] = None,
         on_jump_to_offset: Optional[Callable[[int], None]] = None,
         settings=None,
+        header_parent=None,
         **kwargs,
     ):
         super().__init__(
             master,
-            corner_radius=RADIUS_CARD,
-            fg_color=CARD_BG,
-            border_width=1,
-            border_color=CARD_BORDER,
+            corner_radius=0,
+            fg_color="transparent",
+            border_width=0,
             **kwargs,
         )
         self._on_translate = on_translate
@@ -109,6 +110,7 @@ class TextPanel(ctk.CTkFrame):
         self._on_ask_question = on_ask_question
         self._on_jump_to_offset = on_jump_to_offset
         self.settings = settings
+        self._header_parent = header_parent
 
         saved_font = 14
         saved_lang = "Türkçe"
@@ -142,33 +144,81 @@ class TextPanel(ctk.CTkFrame):
         self.grid_rowconfigure(3, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        # ── 1. Başlık + Yazı Boyutu Kontrolü ──
-        header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.grid(row=0, column=0, padx=PADDING_CARD, pady=(PADDING_CARD, 8), sticky="ew")
+        # ── 1. Üst Çubuk Kontrolleri (header_parent varsa doğrudan App üst barına yerleşir) ──
+        hdr_host = self._header_parent if self._header_parent is not None else self
+        header_frame = ctk.CTkFrame(hdr_host, fg_color="transparent")
+        if self._header_parent is not None:
+            header_frame.grid(row=0, column=0, sticky="ew")
+        else:
+            header_frame.grid(row=0, column=0, padx=0, pady=(0, 8), sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(
+        self.tab_bar = SlidingTabBar(
             header_frame,
-            text="Metin",
-            font=ui_font(14, "semibold"),
-            text_color=TEXT_MAIN,
-            anchor="w",
-        ).grid(row=0, column=0, sticky="w")
+            tabs=["Metin", "Çeviri", "Özet", "Soru-Cevap"],
+            on_change=self._switch_tab,
+            initial="Metin",
+            bg_token=BG_COLOR,
+        )
+        self.tab_bar.grid(row=0, column=0, padx=(12, 12), sticky="w")
+        self.tab_buttons = self.tab_bar.buttons
 
-        # Kompakt font boyut kontrolü: [ A- | 14 | A+ ]
-        font_pill = ctk.CTkFrame(
-            header_frame,
+        right_controls = ctk.CTkFrame(header_frame, fg_color="transparent")
+        right_controls.grid(row=0, column=1, sticky="e")
+
+        self.lang_dropdown = ctk.CTkOptionMenu(
+            right_controls,
+            values=self.AVAILABLE_LANGUAGES,
+            command=self._on_target_lang_change,
+            width=118,
+            height=28,
+            font=ui_font(12, "semibold"),
             fg_color=SECONDARY_BTN,
+            button_color=SECONDARY_BTN_BORDER,
+            button_hover_color=SECONDARY_BTN_HOVER,
+            dropdown_fg_color=CARD_BG,
+            dropdown_hover_color=SECONDARY_BTN,
+            dropdown_text_color=TEXT_MAIN,
+            text_color=TEXT_MAIN,
+            corner_radius=RADIUS_BTN,
+        )
+        self.lang_dropdown.set(self._last_target_lang)
+        self.lang_dropdown.pack(side="left", padx=(0, 6))
+
+        self._ic_split_idle = get_icon("columns-2", size=14, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_split_active = get_icon("columns-2", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
+
+        self.side_by_side_btn = ctk.CTkButton(
+            right_controls,
+            text=" Yan yana",
+            image=self._ic_split_idle,
+            compound="left",
+            width=86,
+            height=28,
+            font=ui_font(11, "semibold"),
+            fg_color="transparent",
             border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
+            border_color=CARD_BORDER,
+            text_color=TEXT_MAIN,
+            hover_color=SECONDARY_BTN_HOVER,
+            corner_radius=8,
+            command=self._toggle_side_by_side,
+        )
+        self.side_by_side_btn.pack(side="left", padx=(0, 6))
+
+        font_pill = ctk.CTkFrame(
+            right_controls,
+            fg_color="transparent",
+            border_width=1,
+            border_color=CARD_BORDER,
             corner_radius=8,
         )
-        font_pill.grid(row=0, column=1, sticky="e")
+        font_pill.pack(side="left")
 
         self.btn_font_dec = ctk.CTkButton(
             font_pill,
             text="A-",
-            width=32,
+            width=26,
             height=24,
             font=ui_font(11, "semibold"),
             command=self._decrease_font,
@@ -177,12 +227,12 @@ class TextPanel(ctk.CTkFrame):
             text_color=TEXT_MAIN,
             corner_radius=6,
         )
-        self.btn_font_dec.pack(side="left", padx=(2, 0), pady=2)
+        self.btn_font_dec.pack(side="left", padx=(2, 0), pady=1)
 
         self.font_size_lbl = ctk.CTkLabel(
             font_pill,
             text=f"{self._font_size}",
-            width=24,
+            width=22,
             font=mono_font(11, "bold"),
             text_color=TEXT_MUTED,
         )
@@ -191,7 +241,7 @@ class TextPanel(ctk.CTkFrame):
         self.btn_font_inc = ctk.CTkButton(
             font_pill,
             text="A+",
-            width=32,
+            width=26,
             height=24,
             font=ui_font(11, "semibold"),
             command=self._increase_font,
@@ -200,22 +250,10 @@ class TextPanel(ctk.CTkFrame):
             text_color=TEXT_MAIN,
             corner_radius=6,
         )
-        self.btn_font_inc.pack(side="left", padx=(0, 2), pady=2)
+        self.btn_font_inc.pack(side="left", padx=(0, 2), pady=1)
 
-        # ── 2. Kayan Göstergeli Sekme Şeridi ──
-        self.tab_bar = SlidingTabBar(
-            self,
-            tabs=["Metin", "Çeviri", "Özet", "Soru-Cevap"],
-            on_change=self._switch_tab,
-            initial="Metin",
-            bg_token=CARD_BG,
-        )
-        self.tab_bar.grid(row=1, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
-        self.tab_buttons = self.tab_bar.buttons
-
-        # ── 3. Çerçevesiz Sade Araç Çubuğu ──
+        # Toolbar arka planda oluştur ama ekranda yer kaplamasın (Kopyala/TXT/MP3 sağ panelde)
         toolbar = ctk.CTkFrame(self, fg_color="transparent")
-        toolbar.grid(row=2, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
 
         self._ic_copy = get_icon("copy", size=14, color=TEXT_MUTED, stroke_width=1.5)
         self._ic_check = get_icon("check", size=14, color=SUCCESS_COLOR, stroke_width=1.5)
@@ -260,31 +298,22 @@ class TextPanel(ctk.CTkFrame):
         )
         self.clear_btn.pack(side="right", padx=(4, 0))
 
-        self.enhance_btn = self._make_tool_btn(
-            toolbar, " Düzelt", self._handle_enhance, icon=self._ic_enhance
-        )
-        self.enhance_btn.pack(side="right", padx=2)
 
-        self.summary_btn = self._make_tool_btn(
-            toolbar, " Özetle", self._handle_summarize, icon=self._ic_summary
-        )
-        self.summary_btn.pack(side="right", padx=2)
 
         # ── 4. Editoryal İç Metin Havuzu + Üst İlerleme Şeridi ──
         self.content_frame = ctk.CTkFrame(
             self,
-            corner_radius=RADIUS_INNER,
-            fg_color=INNER_BG,
-            border_width=1,
-            border_color=CARD_BORDER,
+            corner_radius=0,
+            fg_color=BG_COLOR,
+            border_width=0,
         )
-        self.content_frame.grid(row=3, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="nsew")
+        self.content_frame.grid(row=3, column=0, padx=0, pady=(0, 6), sticky="nsew")
         self.content_frame.grid_rowconfigure(0, weight=0)
         self.content_frame.grid_rowconfigure(1, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
 
         # Canlı ilerleme şeridi
-        self.progress_ribbon = AcousticProgressRibbon(self.content_frame, bg_token=INNER_BG, height=2)
+        self.progress_ribbon = AcousticProgressRibbon(self.content_frame, bg_token=BG_COLOR, height=2)
         self.progress_ribbon.grid(row=0, column=0, sticky="ew", padx=8, pady=(4, 0))
 
         self.ocr_textbox = self._make_textbox(
@@ -312,26 +341,7 @@ class TextPanel(ctk.CTkFrame):
         )
         self.detected_lang_lbl.grid(row=0, column=0, sticky="w")
 
-        self._ic_split_idle = get_icon("columns-2", size=14, color=TEXT_MAIN, stroke_width=1.5)
-        self._ic_split_active = get_icon("columns-2", size=14, color=PRIMARY_BTN_TEXT, stroke_width=1.5)
 
-        self.side_by_side_btn = ctk.CTkButton(
-            trans_top_bar,
-            text=" Yan yana",
-            image=self._ic_split_idle,
-            compound="left",
-            width=96,
-            height=28,
-            font=ui_font(11, "semibold"),
-            fg_color=SECONDARY_BTN,
-            border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
-            text_color=TEXT_MAIN,
-            hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=8,
-            command=self._toggle_side_by_side,
-        )
-        self.side_by_side_btn.grid(row=0, column=1, sticky="e")
 
         self.trans_split_frame = ctk.CTkFrame(self.trans_container, fg_color="transparent")
         self.trans_split_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=(0, 4))
@@ -413,7 +423,7 @@ class TextPanel(ctk.CTkFrame):
 
         # ── 5. Durum ve Tabular İstatistik Satırı ──
         status_bar = ctk.CTkFrame(self, fg_color="transparent")
-        status_bar.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
+        # status_bar kept ungridded for clean book-page reading view
         status_bar.grid_columnconfigure(1, weight=1)
 
         self._ic_status_ok = get_icon("circle-check", size=14, color=TEXT_MUTED, stroke_width=1.5)
@@ -442,72 +452,6 @@ class TextPanel(ctk.CTkFrame):
         )
         self.stats_lbl.grid(row=0, column=2, sticky="e")
 
-        # ── 6. Alt İşlem Satırı: [Hedef dil ▾] [Metni çevir] [Sesli oku] ──
-        actions_bar = ctk.CTkFrame(self, fg_color="transparent")
-        actions_bar.grid(row=5, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
-        actions_bar.grid_columnconfigure(1, weight=1)
-        actions_bar.grid_columnconfigure(2, weight=1)
-
-        lang_box = ctk.CTkFrame(actions_bar, fg_color="transparent")
-        lang_box.grid(row=0, column=0, padx=(0, 8), sticky="w")
-
-        ctk.CTkLabel(
-            lang_box, text="Dil", font=ui_font(12), text_color=TEXT_MUTED
-        ).pack(side="left", padx=(0, 8))
-
-        self.lang_dropdown = ctk.CTkOptionMenu(
-            lang_box,
-            values=self.AVAILABLE_LANGUAGES,
-            command=self._on_target_lang_change,
-            width=124,
-            height=BTN_HEIGHT_MAIN,
-            font=ui_font(12, "semibold"),
-            fg_color=SECONDARY_BTN,
-            button_color=SECONDARY_BTN_BORDER,
-            button_hover_color=SECONDARY_BTN_HOVER,
-            dropdown_fg_color=CARD_BG,
-            dropdown_hover_color=SECONDARY_BTN,
-            dropdown_text_color=TEXT_MAIN,
-            text_color=TEXT_MAIN,
-            corner_radius=RADIUS_BTN,
-        )
-        self.lang_dropdown.set(self._last_target_lang)
-        self.lang_dropdown.pack(side="left")
-
-        self._ic_translate = get_icon("languages", size=16, color=TEXT_MAIN, stroke_width=1.5)
-        self._ic_speak = get_icon("volume-2", size=16, color=PRIMARY_BTN_TEXT, stroke_width=1.7)
-
-        self.translate_btn = ctk.CTkButton(
-            actions_bar,
-            text=" Metni çevir",
-            image=self._ic_translate,
-            compound="left",
-            height=BTN_HEIGHT_MAIN,
-            font=ui_font(13, "semibold"),
-            fg_color=SECONDARY_BTN,
-            border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
-            text_color=TEXT_MAIN,
-            hover_color=SECONDARY_BTN_HOVER,
-            corner_radius=RADIUS_BTN,
-            command=self._handle_translate,
-        )
-        self.translate_btn.grid(row=0, column=1, padx=(0, 8), sticky="ew")
-
-        self.read_btn = ctk.CTkButton(
-            actions_bar,
-            text=" Sesli oku",
-            image=self._ic_speak,
-            compound="left",
-            height=BTN_HEIGHT_MAIN,
-            font=ui_font(13, "semibold"),
-            fg_color=PRIMARY_BTN_BG,
-            text_color=PRIMARY_BTN_TEXT,
-            hover_color=PRIMARY_BTN_HOVER,
-            corner_radius=RADIUS_BTN,
-            command=self._handle_read,
-        )
-        self.read_btn.grid(row=0, column=2, sticky="ew")
 
     # ── Yardımcı Yapıcılar ────────────────────────────────────────
 
@@ -630,15 +574,28 @@ class TextPanel(ctk.CTkFrame):
         elif tab_name == "Çeviri":
             self._sync_orig_side_panel()
             self.trans_container.grid(row=1, column=0, sticky="nsew", padx=4, pady=(2, 4))
+            has_src = bool(self.ocr_textbox.get("1.0", "end-1c").strip())
+            has_tr = bool(self.trans_textbox.get("1.0", "end-1c").strip())
+            if has_src and not has_tr and not getattr(self, "_auto_translating", False):
+                self._auto_translating = True
+                self.after(60, self._run_auto_translate)
         elif tab_name == "Özet":
             self.summary_textbox.grid(row=1, column=0, sticky="nsew", padx=6, pady=(2, 6))
+            has_src = bool(self.ocr_textbox.get("1.0", "end-1c").strip())
+            has_sum = bool(self.summary_textbox.get("1.0", "end-1c").strip())
+            if has_src and not has_sum and not getattr(self, "_auto_summarizing", False):
+                self._auto_summarizing = True
+                self.after(60, self._run_auto_summarize)
         elif tab_name == "Soru-Cevap":
             self.qa_container.grid(row=1, column=0, sticky="nsew", padx=6, pady=(2, 6))
 
         self._update_stats()
 
     def _toggle_side_by_side(self) -> None:
-        self._set_side_by_side(not self._side_by_side, save=True)
+        new_state = not self._side_by_side
+        self._set_side_by_side(new_state, save=True)
+        if new_state and self._active_tab != "Çeviri":
+            self._switch_tab("Çeviri")
 
     def _set_side_by_side(self, enabled: bool, save: bool = True) -> None:
         self._side_by_side = bool(enabled)
@@ -672,10 +629,22 @@ class TextPanel(ctk.CTkFrame):
         if save and self.settings:
             self.settings.set_studio("side_by_side", self._side_by_side)
 
+    def _run_auto_translate(self) -> None:
+        self._auto_translating = False
+        self._handle_translate()
+
+    def _run_auto_summarize(self) -> None:
+        self._auto_summarizing = False
+        self._handle_summarize()
+
     def _on_target_lang_change(self, lang: str) -> None:
         self._last_target_lang = lang
         if self.settings:
             self.settings.set_studio("target_lang", lang)
+        has_src = bool(self.ocr_textbox.get("1.0", "end-1c").strip())
+        has_tr = bool(self.trans_textbox.get("1.0", "end-1c").strip())
+        if has_src and (self._active_tab == "Çeviri" or has_tr):
+            self.after(40, self._handle_translate)
 
     def _sync_orig_side_panel(self) -> None:
         orig = self.get_ocr_text()

@@ -1,13 +1,9 @@
 """
-Sono Tasarım Sistemi — Çift Temalı (Açık / Koyu) Renk, Tipografi ve Hareket Tokenları.
+Sono Tasarım Sistemi — Referans Stüdyo (sono-studio) Çift Temalı Renk ve Tipografi Tokenları.
 
 İki stüdyo teması:
-- Koyu ("Koyu · Grafit"): Nötr grafit yüzeyler + Sıcak Amber vurgu
-- Açık ("Açık · Kağıt"): Sıcak kağıt yüzeyler + Derin Amber vurgu
-
-Tüm renk tokenları CustomTkinter'ın yerel (light_hex, dark_hex) ikilileridir;
-raw tk.Canvas ve tk.Text bileşenleri için `resolve_color()` ve `register_theme_listener()`
-ile anlık, titremesiz tema geçişi sağlanır.
+- Koyu ("Koyu · Grafit"): #0F0F10 / #141415 / #19191B + Mavi vurgu (#8AA2FF)
+- Açık ("Açık · Kağıt"): #F1EDE5 / #F7F4EE / #FDFBF7 + Mavi vurgu (#3D5BD9) + belirgin çizgiler
 """
 
 from __future__ import annotations
@@ -17,9 +13,6 @@ import customtkinter as ctk
 
 ColorToken = Union[str, Tuple[str, str]]
 
-# ============================================================
-# TİPOGRAFİ (FONT)
-# ============================================================
 FONT_FAMILY = "Segoe UI Variable Text"
 FONT_FAMILY_SEMIBOLD = "Segoe UI Variable Text Semibold"
 FONT_DISPLAY = "Segoe UI Variable Display"
@@ -89,49 +82,49 @@ def mono_font(size: int = 12, weight: str = "normal") -> ctk.CTkFont:
 # ÇİFT TEMALI RENK PALETİ — (LIGHT, DARK)
 # ============================================================
 
-# Kabuk ve Yüzey Katmanları (Açık · Kağıt / Koyu · Grafit)
-RAIL_BG: ColorToken = ("#EFECE6", "#0F0F10")
-RAIL_BORDER: ColorToken = ("#E2DDD4", "#242427")
-RAIL_ITEM_HOVER: ColorToken = ("#E6E1D8", "#1A1A1D")
-RAIL_ITEM_ACTIVE: ColorToken = ("#FDFBF7", "#222225")
+# Kabuk ve Yüzey Katmanları (Açık · Kağıt belirgin çizgili / Koyu · Grafit)
+RAIL_BG: ColorToken = ("#F1EDE5", "#0F0F10")
+RAIL_BORDER: ColorToken = ("#CFC8BC", "#242427")
+RAIL_ITEM_HOVER: ColorToken = ("#E5DFD3", "#1A1A1D")
+RAIL_ITEM_ACTIVE: ColorToken = ("#E9E3D7", "#232325")
 
 BG_COLOR: ColorToken = ("#F7F4EE", "#141415")
 HEADER_BG: ColorToken = ("#F7F4EE", "#141415")
 CARD_BG: ColorToken = ("#FDFBF7", "#19191B")
-CARD_BG_ELEVATED: ColorToken = ("#F4F0E8", "#202023")
-CARD_BORDER: ColorToken = ("#E5E0D7", "#27272A")
-CARD_HOVER_BORDER: ColorToken = ("#D2CBC0", "#38383D")
-INNER_BG: ColorToken = ("#F6F3EC", "#131315")
-DIVIDER_COLOR: ColorToken = ("#E5E0D7", "#242427")
+CARD_BG_ELEVATED: ColorToken = ("#EFE9DF", "#232325")
+CARD_BORDER: ColorToken = ("#D2CBC0", "#27272A")
+CARD_HOVER_BORDER: ColorToken = ("#B8B0A4", "#38383D")
+INNER_BG: ColorToken = ("#F7F4EE", "#141415")
+DIVIDER_COLOR: ColorToken = ("#D2CBC0", "#242427")
 
-# Birincil Eylem Düğmesi (Koyu temada kırık beyaz, açık temada mürekkep)
-PRIMARY_BTN_BG: ColorToken = ("#1C1917", "#EDEDED")
+# Birincil Eylem Düğmesi
+PRIMARY_BTN_BG: ColorToken = ("#1F1B16", "#EDEDED")
 PRIMARY_BTN_TEXT: ColorToken = ("#FDFBF7", "#141415")
-PRIMARY_BTN_HOVER: ColorToken = ("#292524", "#FFFFFF")
+PRIMARY_BTN_HOVER: ColorToken = ("#332D26", "#FFFFFF")
 
 # İkincil Kontrol Yüzeyleri
-SECONDARY_BTN: ColorToken = ("#EFECE6", "#222225")
-SECONDARY_BTN_BORDER: ColorToken = ("#DCD6CC", "#2F2F34")
-SECONDARY_BTN_HOVER: ColorToken = ("#E5E0D7", "#2B2B30")
+SECONDARY_BTN: ColorToken = ("#EFE9DF", "#232325")
+SECONDARY_BTN_BORDER: ColorToken = ("#C4BDB1", "#2F2F34")
+SECONDARY_BTN_HOVER: ColorToken = ("#E3DDD1", "#2C2C30")
 
-DASHED_BORDER: ColorToken = ("#CFC8BC", "#323238")
+DASHED_BORDER: ColorToken = ("#BEB6A9", "#323238")
 
-# Metin Hiyerarşisi (WCAG AA/AAA >= 4.5:1)
-TEXT_MAIN: ColorToken = ("#1C1917", "#EDEDED")
-TEXT_MUTED: ColorToken = ("#57534E", "#A1A1A6")
-TEXT_SUBTLE: ColorToken = ("#78716C", "#78787F")
+# Metin Hiyerarşisi
+TEXT_MAIN: ColorToken = ("#1F1B16", "#EDEDED")
+TEXT_MUTED: ColorToken = ("#5E554A", "#A1A1A6")
+TEXT_SUBTLE: ColorToken = ("#7B7266", "#85858B")
 
-# Sono İmza Vurgu Rengi: Sıcak Stüdyo Amber
-ACCENT_COLOR: ColorToken = ("#B45309", "#E59A3C")
-ACCENT_TEXT: ColorToken = ("#FFFFFF", "#141415")
-ACCENT_HOVER: ColorToken = ("#92400E", "#F0AA4E")
-ACCENT_SOFT_BG: ColorToken = ("#F5ECE0", "#261F17")
-ACCENT_SOFT_BORDER: ColorToken = ("#E6D1B8", "#3D3020")
-ACCENT_SOFT_TEXT: ColorToken = ("#9A470A", "#E59A3C")
-ACCENT_GLOW: ColorToken = ("#D97706", "#F2B866")
+# Referans Vurgu Rengi: Stüdyo Mavi (#3D5BD9 / #8AA2FF)
+ACCENT_COLOR: ColorToken = ("#3D5BD9", "#8AA2FF")
+ACCENT_TEXT: ColorToken = ("#FFFFFF", "#0F1220")
+ACCENT_HOVER: ColorToken = ("#2F4BC4", "#A3B6FF")
+ACCENT_SOFT_BG: ColorToken = ("#E6E9F6", "#222531")
+ACCENT_SOFT_BORDER: ColorToken = ("#C5CEF0", "#39446B")
+ACCENT_SOFT_TEXT: ColorToken = ("#3D5BD9", "#8AA2FF")
+ACCENT_GLOW: ColorToken = ("#5B76E5", "#A8BBFF")
 
 # Durum ve Bildirim Renkleri
-SUCCESS_COLOR: ColorToken = ("#15803D", "#4CC38A")
+SUCCESS_COLOR: ColorToken = ("#16A34A", "#4CC38A")
 STATUS_PILL_BG: ColorToken = SECONDARY_BTN
 STATUS_PILL_BORDER: ColorToken = CARD_BORDER
 STATUS_PILL_HOVER: ColorToken = SECONDARY_BTN_HOVER
@@ -146,7 +139,6 @@ STOP_BTN_BG: ColorToken = ("#FDF2F2", "#261719")
 STOP_BTN_BORDER: ColorToken = ("#F2D2D2", "#422226")
 STOP_BTN_HOVER: ColorToken = ("#F9E2E2", "#331D20")
 
-# Navigasyon & Araç Düğme Uyumluluk Tokenları
 NAV_PILL_BG: ColorToken = CARD_BG
 NAV_PILL_ACTIVE_BG: ColorToken = RAIL_ITEM_ACTIVE
 NAV_PILL_ACTIVE_BORDER: ColorToken = CARD_BORDER
@@ -157,48 +149,39 @@ AI_BTN_BORDER: ColorToken = SECONDARY_BTN_BORDER
 AI_BTN_TEXT: ColorToken = TEXT_MAIN
 AI_BTN_HOVER: ColorToken = SECONDARY_BTN_HOVER
 
-# Alt Stüdyo Oynatıcı & Akustik Dalga Formu
-PLAYER_BG: ColorToken = ("#FDFBF7", "#19191B")
-PLAYER_BORDER: ColorToken = ("#E5E0D7", "#27272A")
-WAVE_IDLE: ColorToken = ("#D6D0C4", "#2E2E32")
-WAVE_ACTIVE: ColorToken = ("#B45309", "#E59A3C")
-WAVE_PEAK: ColorToken = ("#92400E", "#F5C47C")
-SLIDER_TRACK: ColorToken = ("#E2DDD4", "#2B2B30")
+# Alt Stüdyo Oynatıcı & İlerleme Çubuğu
+PLAYER_BG: ColorToken = ("#FDFBF7", "#0F0F10")
+PLAYER_BORDER: ColorToken = ("#D2CBC0", "#27272A")
+WAVE_IDLE: ColorToken = ("#CFC8BC", "#2E2E32")
+WAVE_ACTIVE: ColorToken = ("#3D5BD9", "#8AA2FF")
+WAVE_PEAK: ColorToken = ("#2F4BC4", "#B3C3FF")
+SLIDER_TRACK: ColorToken = ("#CEC7BA", "#2B2B30")
 
 # 3-Katmanlı Okuma Vurgusu
-HL_DONE_FG: ColorToken = ("#1C1917", "#EDEDED")
-HL_ACTIVE_BG: ColorToken = ("#F4E3C9", "#332615")
-HL_ACTIVE_FG: ColorToken = ("#78350F", "#FCE7C8")
-HL_UNREAD_FG: ColorToken = ("#A8A29E", "#6B6B72")
+HL_DONE_FG: ColorToken = ("#1F1B16", "#EDEDED")
+HL_ACTIVE_BG: ColorToken = ("#E2E7FA", "#232942")
+HL_ACTIVE_FG: ColorToken = ("#1E3A8A", "#C7D2FE")
+HL_UNREAD_FG: ColorToken = ("#9C9488", "#787880")
 
-# Ayarlar Yan Menü Aktif Yüzeyi
-ISLAND_ACTIVE_BG: ColorToken = ("#EFECE6", "#222225")
+ISLAND_ACTIVE_BG: ColorToken = ("#E9E3D7", "#232325")
 
-# ============================================================
-# ÖLÇÜLER (GEOMETRY & 4px SPACING RHYTHM)
-# ============================================================
 RADIUS_CARD = 12
 RADIUS_INNER = 8
 RADIUS_BTN = 8
 RADIUS_PILL = 8
 
-BTN_HEIGHT_MAIN = 40
+BTN_HEIGHT_MAIN = 38
 BTN_HEIGHT_SM = 32
 
 SPACING_CARD = 16
 PADDING_CARD = 16
-RAIL_WIDTH = 72
+RAIL_WIDTH = 240
 
-
-# ============================================================
-# CANLI TEMA YÖNETİMİ VE RENK ÇÖZÜMLEME
-# ============================================================
 _theme_listeners: list[Callable[[str], None]] = []
 _reduced_motion: bool = False
 
 
 def get_theme_mode() -> str:
-    """Aktif temayı 'light' veya 'dark' olarak döndürür."""
     try:
         return "light" if ctk.get_appearance_mode().lower() == "light" else "dark"
     except Exception:
@@ -210,7 +193,6 @@ def is_light_mode() -> bool:
 
 
 def resolve_color(token: ColorToken, mode: Optional[str] = None) -> str:
-    """(light, dark) ikilisini aktif tema için tek hex renge çözümler."""
     if isinstance(token, tuple) and len(token) >= 2:
         m = (mode or get_theme_mode()).lower()
         return token[0] if m == "light" else token[1]
@@ -227,7 +209,6 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
 
 
 def hex_blend(c1: str, c2: str, t: float) -> str:
-    """İki hex rengi 0..1 oranında pürüzsüz karıştırır."""
     t = max(0.0, min(1.0, float(t)))
     r1, g1, b1 = hex_to_rgb(c1)
     r2, g2, b2 = hex_to_rgb(c2)
@@ -251,7 +232,6 @@ def unregister_theme_listener(callback: Callable[[str], None]) -> None:
 
 
 def notify_theme_changed(mode: str) -> None:
-    """Tema değiştiğinde tüm özel Canvas / tk.Text dinleyicilerini günceller."""
     dead: list[Callable[[str], None]] = []
     for cb in list(_theme_listeners):
         try:

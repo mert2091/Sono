@@ -193,12 +193,12 @@ class App(_AppBase):
             return
 
         self.api_badge_frame.configure(fg_color="transparent", border_width=0)
-        self.gemini_dot.set_bg_token(HEADER_BG)
+        self.gemini_dot.set_bg_token(RAIL_BG)
         if busy:
             self.api_badge_lbl.configure(text="Gemini çalışıyor…", text_color=ACCENT_SOFT_TEXT)
             self.gemini_dot.set_mode("busy")
         elif is_ready:
-            self.api_badge_lbl.configure(text="Gemini hazır", text_color=TEXT_MUTED)
+            self.api_badge_lbl.configure(text="Gemini bağlı", text_color=TEXT_MUTED)
             self.gemini_dot.set_mode("ready")
         else:
             self.api_badge_lbl.configure(text="API anahtarı gerekli", text_color=STOP_BTN_TEXT)
@@ -239,17 +239,18 @@ class App(_AppBase):
                 self._header_logo_img = None
 
         self._ic_rail = {
-            "home_idle": get_icon("audio-waveform", size=18, color=TEXT_MUTED, stroke_width=1.5),
-            "home_act": get_icon("audio-waveform", size=18, color=TEXT_MAIN, stroke_width=1.8),
-            "library_idle": get_icon("book-open", size=18, color=TEXT_MUTED, stroke_width=1.5),
-            "library_act": get_icon("book-open", size=18, color=TEXT_MAIN, stroke_width=1.8),
-            "tools_idle": get_icon("layers", size=18, color=TEXT_MUTED, stroke_width=1.5),
-            "tools_act": get_icon("layers", size=18, color=TEXT_MAIN, stroke_width=1.8),
-            "settings_idle": get_icon("sliders-horizontal", size=18, color=TEXT_MUTED, stroke_width=1.5),
-            "settings_act": get_icon("sliders-horizontal", size=18, color=TEXT_MAIN, stroke_width=1.8),
-            "sun": get_icon("sun", size=18, color=TEXT_MUTED, stroke_width=1.5),
-            "moon": get_icon("moon", size=18, color=TEXT_MUTED, stroke_width=1.5),
+            "home_idle": get_icon("file-text", size=16, color=TEXT_MUTED, stroke_width=1.5),
+            "home_act": get_icon("file-text", size=16, color=TEXT_MAIN, stroke_width=1.7),
+            "library_idle": get_icon("book-open", size=16, color=TEXT_MUTED, stroke_width=1.5),
+            "library_act": get_icon("book-open", size=16, color=TEXT_MAIN, stroke_width=1.7),
+            "tools_idle": get_icon("layers", size=16, color=TEXT_MUTED, stroke_width=1.5),
+            "tools_act": get_icon("layers", size=16, color=TEXT_MAIN, stroke_width=1.7),
+            "settings_idle": get_icon("sliders-horizontal", size=16, color=TEXT_MUTED, stroke_width=1.5),
+            "settings_act": get_icon("sliders-horizontal", size=16, color=TEXT_MAIN, stroke_width=1.7),
+            "sun": get_icon("sun", size=16, color=TEXT_MUTED, stroke_width=1.5),
+            "moon": get_icon("moon", size=16, color=TEXT_MUTED, stroke_width=1.5),
         }
+        self._ic_plus_btn = get_icon("plus", size=15, color=PRIMARY_BTN_TEXT, stroke_width=1.8)
         self._ic_scan = get_icon("scan", size=15, color=TEXT_MAIN, stroke_width=1.5)
         self._ic_search = get_icon("search", size=15, color=TEXT_MUTED, stroke_width=1.5)
         self._ic_trash_err = get_icon("trash", size=14, color=STOP_BTN_TEXT, stroke_width=1.5)
@@ -263,85 +264,150 @@ class App(_AppBase):
         self._load_brand_and_icons()
 
         self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=0)  # Sol Stüdyo Rayı
-        self.grid_columnconfigure(1, weight=0)  # 1px dikey ayırıcı
-        self.grid_columnconfigure(2, weight=1)  # Sağ Çalışma Alanı
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=0)
+        self.grid_columnconfigure(2, weight=1)
 
-        # ── 1. SOL STÜDYO RAYI ──
+        # ── 1. SOL KENAR ÇUBUĞU (240px) ──
         rail = ctk.CTkFrame(self, width=RAIL_WIDTH, fg_color=RAIL_BG, corner_radius=0)
         rail.grid(row=0, column=0, sticky="nsew")
         rail.grid_propagate(False)
-        rail.grid_rowconfigure(2, weight=1)
+        rail.grid_rowconfigure(4, weight=1)
         rail.grid_columnconfigure(0, weight=1)
 
-        # Üst: Sono Amblemi
         brand_wrap = ctk.CTkFrame(rail, fg_color="transparent")
-        brand_wrap.grid(row=0, column=0, pady=(16, 16))
+        brand_wrap.grid(row=0, column=0, sticky="ew", padx=16, pady=(16, 14))
 
         logo_btn = ctk.CTkButton(
             brand_wrap,
             text="" if self._header_logo_img else "S",
             image=self._header_logo_img,
-            width=40,
-            height=40,
-            font=display_font(16, "semibold"),
-            fg_color=CARD_BG,
-            border_width=1,
-            border_color=CARD_BORDER,
+            width=28,
+            height=28,
+            font=display_font(14, "semibold"),
+            fg_color="transparent",
             hover_color=RAIL_ITEM_HOVER,
             text_color=TEXT_MAIN,
-            corner_radius=10,
+            corner_radius=6,
             command=lambda: self._switch_view("home"),
         )
-        logo_btn.pack()
+        logo_btn.pack(side="left")
 
         ctk.CTkLabel(
             brand_wrap,
             text="Sono",
-            font=ui_font(11, "semibold"),
-            text_color=TEXT_SUBTLE,
-        ).pack(pady=(4, 0))
+            font=display_font(16, "semibold"),
+            text_color=TEXT_MAIN,
+        ).pack(side="left", padx=(8, 0))
 
-        # Orta: Dikey Navigasyon Öğeleri
-        nav_stack = ctk.CTkFrame(rail, fg_color="transparent")
-        nav_stack.grid(row=1, column=0, sticky="ew", padx=8)
+        actions_wrap = ctk.CTkFrame(rail, fg_color="transparent")
+        actions_wrap.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 16))
 
-        nav_defs = [
-            ("home", "Stüdyo"),
-            ("library", "Kitaplık"),
-            ("tools", "Araçlar"),
-            ("settings", "Ayarlar"),
-        ]
-        for key, label in nav_defs:
-            self._make_rail_item(nav_stack, key, label)
-
-        # Alt: Anlık Tema Değiştirici (Koyu <-> Açık)
-        bottom_rail = ctk.CTkFrame(rail, fg_color="transparent")
-        bottom_rail.grid(row=3, column=0, sticky="ew", padx=8, pady=(8, 16))
-
-        is_dark = self._current_theme == "dark"
-        self.theme_btn = ctk.CTkButton(
-            bottom_rail,
-            text="Açık" if is_dark else "Koyu",
-            image=self._ic_rail["sun"] if is_dark else self._ic_rail["moon"],
-            compound="top",
-            width=52,
-            height=48,
-            font=ui_font(10, "semibold"),
-            fg_color="transparent",
-            border_width=0,
-            hover_color=RAIL_ITEM_HOVER,
-            text_color=TEXT_MUTED,
-            corner_radius=8,
-            command=self._toggle_theme,
+        open_row = ctk.CTkFrame(
+            actions_wrap,
+            height=36,
+            fg_color=PRIMARY_BTN_BG,
+            corner_radius=RADIUS_BTN,
+            cursor="hand2",
         )
-        self.theme_btn.pack(fill="x")
+        open_row.pack(fill="x", pady=(0, 8))
+        open_row.pack_propagate(False)
+        open_ico = ctk.CTkLabel(open_row, text="", image=self._ic_plus_btn)
+        open_ico.pack(side="left", padx=(12, 8))
+        open_lbl = ctk.CTkLabel(
+            open_row, text="Belge aç", font=ui_font(13, "semibold"), text_color=PRIMARY_BTN_TEXT
+        )
+        open_lbl.pack(side="left")
+        open_kbd = ctk.CTkLabel(
+            open_row, text="Ctrl+O", font=mono_font(10), text_color=PRIMARY_BTN_TEXT
+        )
+        open_kbd.pack(side="right", padx=(0, 10))
+        for w in (open_row, open_ico, open_lbl, open_kbd):
+            w.bind("<Button-1>", lambda _e: self._open_document_action())
 
-        # Dikey ayırıcı çizgi
+        cap_row = ctk.CTkFrame(
+            actions_wrap,
+            height=36,
+            fg_color=SECONDARY_BTN,
+            border_width=1,
+            border_color=CARD_BORDER,
+            corner_radius=RADIUS_BTN,
+            cursor="hand2",
+        )
+        cap_row.pack(fill="x")
+        cap_row.pack_propagate(False)
+        cap_ico = ctk.CTkLabel(cap_row, text="", image=self._ic_scan)
+        cap_ico.pack(side="left", padx=(12, 8))
+        cap_lbl = ctk.CTkLabel(
+            cap_row, text="Ekrandan oku", font=ui_font(13, "semibold"), text_color=TEXT_MAIN
+        )
+        cap_lbl.pack(side="left")
+        cap_kbd = ctk.CTkLabel(
+            cap_row, text="Ctrl+⇧+O", font=mono_font(10), text_color=TEXT_SUBTLE
+        )
+        cap_kbd.pack(side="right", padx=(0, 10))
+        for w in (cap_row, cap_ico, cap_lbl, cap_kbd):
+            w.bind("<Button-1>", lambda _e: self._start_screen_capture())
+
+        nav_stack = ctk.CTkFrame(rail, fg_color="transparent")
+        nav_stack.grid(row=2, column=0, sticky="ew", padx=12)
+
+        self._make_rail_item(nav_stack, "home", "Stüdyo")
+        self._make_rail_item(nav_stack, "library", "Kitaplık", has_badge=True)
+        self._make_rail_item(nav_stack, "tools", "Araçlar")
+
+        ctk.CTkLabel(
+            rail, text="Okumaya devam et", font=ui_font(12), text_color=TEXT_SUBTLE
+        ).grid(row=3, column=0, sticky="w", padx=20, pady=(18, 6))
+
+        self._recent_nav_frame = ctk.CTkFrame(rail, fg_color="transparent")
+        self._recent_nav_frame.grid(row=4, column=0, sticky="new", padx=12)
+
+        # Alt: Ayarlar (en altta, ayak satırının hemen üstünde)
+        bottom_rail = ctk.CTkFrame(rail, fg_color="transparent")
+        bottom_rail.grid(row=5, column=0, sticky="ew", padx=12, pady=(8, 12))
+
+        self._make_rail_item(bottom_rail, "settings", "Ayarlar")
+
+        foot_sep = ctk.CTkFrame(bottom_rail, height=1, fg_color=DIVIDER_COLOR, corner_radius=0)
+        foot_sep.pack(fill="x", pady=(8, 8))
+
+        foot_row = ctk.CTkFrame(bottom_rail, fg_color="transparent")
+        foot_row.pack(fill="x", padx=6)
+
+        self.api_badge_frame = ctk.CTkFrame(foot_row, fg_color="transparent", cursor="hand2")
+        self.api_badge_frame.pack(side="left")
+
+        self.gemini_dot = LivePulseDot(
+            self.api_badge_frame,
+            size=12,
+            bg_token=RAIL_BG,
+            on_click=lambda: self._switch_view("settings", settings_tab="ai"),
+        )
+        self.gemini_dot.pack(side="left", padx=(0, 4))
+
+        self.api_badge_lbl = ctk.CTkLabel(
+            self.api_badge_frame,
+            text="Gemini bağlı",
+            font=ui_font(12),
+            text_color=TEXT_SUBTLE,
+            cursor="hand2",
+        )
+        self.api_badge_lbl.pack(side="left")
+        for w in (self.api_badge_frame, self.api_badge_lbl):
+            w.bind("<Button-1>", lambda _e: self._switch_view("settings", settings_tab="ai"))
+
+        ctk.CTkLabel(
+            foot_row,
+            text=f"v{APP_VERSION}",
+            font=mono_font(11),
+            text_color=TEXT_SUBTLE,
+        ).pack(side="right")
+
         v_sep = ctk.CTkFrame(self, width=1, fg_color=RAIL_BORDER, corner_radius=0)
         v_sep.grid(row=0, column=1, sticky="ns")
 
-        # ── 2. SAĞ ÇALIŞMA ALANI (Üst Çubuk + Aktif Sahne) ──
+        # ── 2. SAĞ ÇALIŞMA ALANI ──
         main_col = ctk.CTkFrame(self, fg_color=BG_COLOR, corner_radius=0)
         main_col.grid(row=0, column=2, sticky="nsew")
         main_col.grid_rowconfigure(0, weight=0)
@@ -349,10 +415,9 @@ class App(_AppBase):
         main_col.grid_rowconfigure(2, weight=1)
         main_col.grid_columnconfigure(0, weight=1)
 
-        # İnce Entegre Üst Başlık Çubuğu
-        header = ctk.CTkFrame(main_col, fg_color=HEADER_BG, corner_radius=0)
-        header.grid(row=0, column=0, sticky="ew", padx=24, pady=(16, 12))
-        header.grid_columnconfigure(0, weight=1)
+        header = ctk.CTkFrame(main_col, height=58, fg_color=HEADER_BG, corner_radius=0)
+        header.grid(row=0, column=0, sticky="ew", padx=24, pady=(10, 10))
+        header.grid_columnconfigure(1, weight=1)
 
         title_stack = ctk.CTkFrame(header, fg_color="transparent")
         title_stack.grid(row=0, column=0, sticky="w")
@@ -360,79 +425,48 @@ class App(_AppBase):
         self.view_title_lbl = ctk.CTkLabel(
             title_stack,
             text="Stüdyo",
-            font=display_font(20, "semibold"),
+            font=display_font(16, "semibold"),
             text_color=TEXT_MAIN,
         )
         self.view_title_lbl.pack(anchor="w")
 
         self.view_sub_lbl = ctk.CTkLabel(
             title_stack,
-            text=self.VIEW_META["home"][1],
-            font=ui_font(12),
-            text_color=TEXT_MUTED,
+            text="",
+            font=ui_font(11),
+            text_color=TEXT_SUBTLE,
         )
-        self.view_sub_lbl.pack(anchor="w")
 
-        # Sağ Üst Aksiyonlar: Hızlı Ekran Yakala + Sessiz Gemini Durumu
+        # Stüdyo üst kontrolleri (Sekmeler + Hedef dil + Yan yana + Yazı boyutu)
+        self._studio_hdr_controls = ctk.CTkFrame(header, fg_color="transparent")
+        self._studio_hdr_controls.grid(row=0, column=1, sticky="ew", padx=(12, 8))
+        self._studio_hdr_controls.grid_columnconfigure(0, weight=1)
+
         right_hdr = ctk.CTkFrame(header, fg_color="transparent")
-        right_hdr.grid(row=0, column=1, sticky="e")
+        right_hdr.grid(row=0, column=2, sticky="e")
 
-        self.quick_capture_btn = ctk.CTkButton(
+        is_dark = self._current_theme == "dark"
+        self.theme_btn = ctk.CTkButton(
             right_hdr,
-            text=" Ekran yakala",
-            image=self._ic_scan,
-            compound="left",
-            height=32,
-            font=ui_font(12, "semibold"),
-            fg_color=SECONDARY_BTN,
-            border_width=1,
-            border_color=SECONDARY_BTN_BORDER,
-            hover_color=SECONDARY_BTN_HOVER,
-            text_color=TEXT_MAIN,
-            corner_radius=8,
-            command=self._start_screen_capture,
-        )
-        self.quick_capture_btn.pack(side="left", padx=(0, 12))
-
-        # Sessiz noktalı tıklanabilir Gemini durum göstergesi
-        self.api_badge_frame = ctk.CTkFrame(
-            right_hdr,
-            height=32,
+            text="",
+            image=self._ic_rail["sun"] if is_dark else self._ic_rail["moon"],
+            width=30,
+            height=30,
             fg_color="transparent",
-            border_width=0,
-            corner_radius=8,
-            cursor="hand2",
-        )
-        self.api_badge_frame.pack(side="left")
-        self.api_badge_frame.grid_rowconfigure(0, weight=1)
-
-        self.gemini_dot = LivePulseDot(
-            self.api_badge_frame,
-            size=14,
-            bg_token=HEADER_BG,
-            on_click=lambda: self._switch_view("settings", settings_tab="ai"),
-        )
-        self.gemini_dot.grid(row=0, column=0, padx=(8, 4), pady=8)
-
-        self.api_badge_lbl = ctk.CTkLabel(
-            self.api_badge_frame,
-            text="Gemini hazır",
-            font=ui_font(12),
+            border_width=1,
+            border_color=CARD_BORDER,
+            hover_color=SECONDARY_BTN_HOVER,
             text_color=TEXT_MUTED,
-            cursor="hand2",
+            corner_radius=RADIUS_BTN,
+            command=self._toggle_theme,
         )
-        self.api_badge_lbl.grid(row=0, column=1, padx=(0, 8), pady=6)
+        self.theme_btn.pack(side="left")
 
-        for w in (self.api_badge_frame, self.api_badge_lbl):
-            w.bind("<Button-1>", lambda _e: self._switch_view("settings", settings_tab="ai"))
-
-        # Yatay 1px ayırıcı
         h_sep = ctk.CTkFrame(main_col, height=1, fg_color=DIVIDER_COLOR, corner_radius=0)
         h_sep.grid(row=1, column=0, sticky="ew")
 
-        # Aktif Görünüm Sahnesi
         self.stage = ctk.CTkFrame(main_col, fg_color="transparent")
-        self.stage.grid(row=2, column=0, sticky="nsew", padx=24, pady=16)
+        self.stage.grid(row=2, column=0, sticky="nsew", padx=24, pady=(14, 16))
         self.stage.grid_rowconfigure(0, weight=1)
         self.stage.grid_columnconfigure(0, weight=1)
 
@@ -441,24 +475,30 @@ class App(_AppBase):
         self._build_tools_view()
         self._build_settings_view()
 
+        self._refresh_sidebar_recent()
         self._switch_view("home")
 
-    def _make_rail_item(self, parent, key: str, label: str) -> None:
+    def _open_document_action(self) -> None:
+        self._switch_view("home")
+        if hasattr(self, "image_panel"):
+            self.image_panel.open_file()
+
+    def _make_rail_item(self, parent, key: str, label: str, has_badge: bool = False) -> None:
         row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", pady=4)
+        row.pack(fill="x", pady=1)
         row.grid_columnconfigure(1, weight=1)
 
-        indicator = ctk.CTkFrame(row, width=3, height=20, corner_radius=2, fg_color="transparent")
+        indicator = ctk.CTkFrame(row, width=3, height=18, corner_radius=2, fg_color="transparent")
         indicator.grid(row=0, column=0, padx=(0, 4), sticky="w")
 
         btn = ctk.CTkButton(
             row,
-            text=label,
+            text=f"  {label}",
             image=self._ic_rail[f"{key}_idle"],
-            compound="top",
-            width=52,
-            height=48,
-            font=ui_font(10, "semibold"),
+            compound="left",
+            anchor="w",
+            height=34,
+            font=ui_font(13, "semibold"),
             fg_color="transparent",
             hover_color=RAIL_ITEM_HOVER,
             text_color=TEXT_MUTED,
@@ -466,7 +506,80 @@ class App(_AppBase):
             command=lambda k=key: self._switch_view(k),
         )
         btn.grid(row=0, column=1, sticky="ew")
-        self._nav_items[key] = {"btn": btn, "indicator": indicator}
+
+        badge_lbl = None
+        if has_badge:
+            badge_lbl = ctk.CTkLabel(
+                row, text="", font=mono_font(11), text_color=TEXT_SUBTLE
+            )
+            badge_lbl.grid(row=0, column=2, padx=(4, 8))
+
+        self._nav_items[key] = {"btn": btn, "indicator": indicator, "badge": badge_lbl}
+
+    def _refresh_sidebar_recent(self) -> None:
+        try:
+            items = get_all_history()
+        except Exception:
+            items = []
+
+        lib_item = self._nav_items.get("library")
+        if lib_item and lib_item.get("badge") is not None:
+            lib_item["badge"].configure(text=str(len(items)) if items else "")
+
+        if not hasattr(self, "_recent_nav_frame"):
+            return
+        for w in self._recent_nav_frame.winfo_children():
+            w.destroy()
+
+        if not items:
+            ctk.CTkLabel(
+                self._recent_nav_frame,
+                text="Henüz belge yok",
+                font=ui_font(12),
+                text_color=TEXT_SUBTLE,
+            ).pack(anchor="w", padx=10, pady=4)
+            return
+
+        for item in items[:4]:
+            title = (item.get("title") or "Belge").strip()
+            if len(title) > 22:
+                title = title[:21] + "…"
+            total_p = max(1, int(item.get("total_paragraphs") or 1))
+            last_p = int(item.get("last_paragraph") or 0)
+            pct = min(100, max(0, round((last_p / total_p) * 100)))
+            is_cur = (item.get("id") == self._active_history_id)
+
+            card = ctk.CTkFrame(
+                self._recent_nav_frame,
+                fg_color=RAIL_ITEM_ACTIVE if is_cur else "transparent",
+                corner_radius=8,
+                cursor="hand2",
+            )
+            card.pack(fill="x", pady=2)
+
+            top_r = ctk.CTkFrame(card, fg_color="transparent")
+            top_r.pack(fill="x", padx=10, pady=(6, 4))
+            t_lbl = ctk.CTkLabel(
+                top_r, text=title, font=ui_font(12), text_color=TEXT_MAIN if is_cur else TEXT_MUTED, anchor="w"
+            )
+            t_lbl.pack(side="left", fill="x", expand=True)
+            p_lbl = ctk.CTkLabel(
+                top_r, text=f"%{pct}", font=mono_font(11), text_color=TEXT_SUBTLE
+            )
+            p_lbl.pack(side="right", padx=(6, 0))
+
+            prog = ctk.CTkProgressBar(
+                card,
+                height=3,
+                corner_radius=2,
+                fg_color=SLIDER_TRACK,
+                progress_color=ACCENT_COLOR if is_cur else TEXT_SUBTLE,
+            )
+            prog.set(pct / 100.0)
+            prog.pack(fill="x", padx=10, pady=(0, 6))
+
+            for w in (card, top_r, t_lbl, p_lbl, prog):
+                w.bind("<Button-1>", lambda _e, it=item: self._load_from_history(it))
 
     # ── Görünüm 1: Ana Sayfa (Stüdyo) ────────────────────────────
 
@@ -483,15 +596,8 @@ class App(_AppBase):
         cards_workspace = ctk.CTkFrame(view, fg_color="transparent")
         cards_workspace.grid(row=0, column=0, sticky="nsew", pady=(0, SPACING_CARD))
         cards_workspace.grid_rowconfigure(0, weight=1)
-        cards_workspace.grid_columnconfigure(0, weight=42, uniform="studio")
-        cards_workspace.grid_columnconfigure(1, weight=58, uniform="studio")
-
-        self.image_panel = ImagePanel(
-            cards_workspace,
-            on_image_loaded=self._on_image_loaded,
-            on_document_loaded=self._on_document_loaded,
-        )
-        self.image_panel.grid(row=0, column=0, padx=(0, SPACING_CARD // 2), sticky="nsew")
+        cards_workspace.grid_columnconfigure(0, weight=64, uniform="studio")
+        cards_workspace.grid_columnconfigure(1, weight=36, uniform="studio")
 
         self.text_panel = TextPanel(
             cards_workspace,
@@ -503,13 +609,25 @@ class App(_AppBase):
             on_ask_question=self._on_ask_question_clicked,
             on_jump_to_offset=self._on_jump_to_offset,
             settings=self.settings,
+            header_parent=self._studio_hdr_controls,
         )
-        self.text_panel.grid(row=0, column=1, padx=(SPACING_CARD // 2, 0), sticky="nsew")
+        self.text_panel.grid(row=0, column=0, padx=(0, 12), sticky="nsew")
+
+        self.image_panel = ImagePanel(
+            cards_workspace,
+            on_image_loaded=self._on_image_loaded,
+            on_document_loaded=self._on_document_loaded,
+            on_copy=self.text_panel._copy_to_clipboard,
+            on_export_txt=self.text_panel._save_as_txt,
+            on_export_mp3=self.text_panel._export_audio,
+        )
+        self.image_panel.grid(row=0, column=1, padx=(SPACING_CARD // 2, 0), sticky="nsew")
 
         self.audio_panel = AudioPanel(
             view,
             self.tts_service,
             on_stop=self._on_playback_stopped,
+            on_play_request=self.text_panel._handle_read,
             settings=self.settings,
         )
         self.audio_panel.grid(row=1, column=0, sticky="ew")
@@ -612,6 +730,7 @@ class App(_AppBase):
         self._refresh_library()
 
     def _refresh_library(self) -> None:
+        self._refresh_sidebar_recent()
         for w in self.lib_scroll.winfo_children():
             w.destroy()
 
@@ -1001,6 +1120,12 @@ class App(_AppBase):
         if view_name in self._views:
             self._views[view_name].grid(row=0, column=0, sticky="nsew")
 
+        if hasattr(self, "_studio_hdr_controls"):
+            if view_name == "home":
+                self._studio_hdr_controls.grid(row=0, column=1, sticky="ew", padx=(12, 8))
+            else:
+                self._studio_hdr_controls.grid_remove()
+
         if view_name == "library":
             self._refresh_library()
         elif view_name == "settings":
@@ -1044,6 +1169,8 @@ class App(_AppBase):
     def _bind_shortcuts(self) -> None:
         self.bind("<Control-KeyPress-v>", self._on_paste)
         self.bind("<Control-KeyPress-V>", self._on_paste)
+        self.bind("<Control-KeyPress-o>", lambda _e: self._open_document_action())
+        self.bind("<Control-KeyPress-O>", lambda _e: self._open_document_action())
         self._reload_shortcuts()
 
     def _safe_bind_shortcut(self, keys_str: str, handler) -> None:
@@ -1202,7 +1329,7 @@ class App(_AppBase):
             is_dark = mode == "dark"
             self.theme_btn.configure(
                 image=self._ic_rail["sun"] if is_dark else self._ic_rail["moon"],
-                text="Açık" if is_dark else "Koyu",
+                text="",
             )
         if hasattr(self, "settings_panel") and hasattr(self.settings_panel, "sync_theme_selection"):
             self.settings_panel.sync_theme_selection(mode)
@@ -1213,6 +1340,18 @@ class App(_AppBase):
         self.settings.set_general("theme", new_mode)
         self._apply_theme_mode(new_mode)
 
+    def _update_studio_stats(self, text_val: str, read_words: int = 0, source_lang: str = "—") -> None:
+        words = len((text_val or "").split())
+        est_sec = max(0, round(words / 2.5)) if words else 0
+        mins, secs = divmod(est_sec, 60)
+        dur_str = f"{mins}:{secs:02d}"
+        if hasattr(self, "image_panel") and hasattr(self.image_panel, "update_stats"):
+            self.image_panel.update_stats(
+                words=words, read_words=read_words, duration_str=dur_str, source_lang=source_lang
+            )
+        if hasattr(self, "audio_panel") and hasattr(self.audio_panel, "set_has_text"):
+            self.audio_panel.set_has_text(bool((text_val or "").strip()))
+
     def _load_from_history(self, item: dict) -> None:
         text = item.get("text_content") or ""
         translation = item.get("translation_content") or ""
@@ -1221,7 +1360,8 @@ class App(_AppBase):
 
         self.text_panel.set_ocr_text(text)
         if translation:
-            self.text_panel.set_translation_text(translation)
+            self._update_studio_stats(orig_text, source_lang=result.get("source_language", "—"))
+        self.text_panel.set_translation_text(translation)
 
         if self.settings.get_feature("resume_last_position") and last_p > 0:
             self._active_resume_paragraph = last_p
@@ -1238,6 +1378,8 @@ class App(_AppBase):
             self._active_resume_paragraph = 0
             self.text_panel.set_status("Belge kitaplıktan yüklendi.")
 
+        self._update_studio_stats(text)
+        self._refresh_sidebar_recent()
         self._switch_view("home")
 
     # ── Belge ve OCR Olayları ─────────────────────────────────────
@@ -1248,6 +1390,8 @@ class App(_AppBase):
 
     def _on_document_loaded(self, title: str, text: str) -> None:
         self.text_panel.set_ocr_text(text)
+        self._update_studio_stats(text)
+        self._refresh_sidebar_recent()
         self.text_panel.set_status(f"{title} yüklendi.")
         self._active_resume_paragraph = 0
         self._active_history_id = add_history_entry(title=title, text=text, source_type="Belge")
@@ -1266,8 +1410,8 @@ class App(_AppBase):
         self.text_panel.ocr_textbox.insert(
             "1.0", "Görsel analiz ediliyor ve metin çıkarılıyor…\nLütfen bekleyin."
         )
-        self.text_panel.translate_btn.configure(state="disabled")
-        self.text_panel.read_btn.configure(state="disabled")
+        (self.text_panel.translate_btn.configure(state="disabled") if hasattr(self.text_panel, 'translate_btn') else None)
+        (self.text_panel.read_btn.configure(state="disabled") if hasattr(self.text_panel, 'read_btn') else None)
 
         def task():
             try:
@@ -1297,8 +1441,8 @@ class App(_AppBase):
                         f"Görseldeki metin okunamadı.\n\nDetay:\n{err_text}"
                     ),
                 )
-                self.after(0, lambda: self.text_panel.translate_btn.configure(state="normal"))
-                self.after(0, lambda: self.text_panel.read_btn.configure(state="normal"))
+                self.after(0, lambda: (self.text_panel.translate_btn.configure(state="normal") if hasattr(self.text_panel, 'translate_btn') else None))
+                self.after(0, lambda: (self.text_panel.read_btn.configure(state="normal") if hasattr(self.text_panel, 'read_btn') else None))
                 self.after(0, lambda msg=err_text: self._maybe_prompt_invalid_key(msg))
 
         threading.Thread(target=task, daemon=True).start()
@@ -1314,11 +1458,13 @@ class App(_AppBase):
         self.text_panel.set_ocr_text(text)
         self.text_panel.set_status("Metin başarıyla çıkarıldı.")
         self.text_panel.set_progress(1.0)
-        self.text_panel.translate_btn.configure(state="normal")
-        self.text_panel.read_btn.configure(state="normal")
+        (self.text_panel.translate_btn.configure(state="normal") if hasattr(self.text_panel, 'translate_btn') else None)
+        (self.text_panel.read_btn.configure(state="normal") if hasattr(self.text_panel, 'read_btn') else None)
         self.after(1200, lambda: self.text_panel.set_progress(0))
         self._active_resume_paragraph = 0
         self._active_history_id = add_history_entry(title=history_title, text=text, source_type="Görsel")
+        self._update_studio_stats(text)
+        self._refresh_sidebar_recent()
         if auto_read and text.strip():
             self._on_read_clicked(text)
 
@@ -1332,7 +1478,7 @@ class App(_AppBase):
         self._refresh_api_badge(busy=True)
         self.text_panel.set_status(f"⏳ {target_lang} diline çevriliyor…")
         self.text_panel.set_progress(0.5)
-        self.text_panel.translate_btn.configure(state="disabled")
+        (self.text_panel.translate_btn.configure(state="disabled") if hasattr(self.text_panel, 'translate_btn') else None)
 
         def task():
             try:
@@ -1351,7 +1497,7 @@ class App(_AppBase):
                 self.after(0, lambda: self._refresh_api_badge())
                 self.after(0, lambda: self.text_panel.set_status(f"❌ Çeviri hatası: {err_text[:80]}"))
                 self.after(0, lambda: self.text_panel.set_progress(0))
-                self.after(0, lambda: self.text_panel.translate_btn.configure(state="normal"))
+                self.after(0, lambda: (self.text_panel.translate_btn.configure(state="normal") if hasattr(self.text_panel, 'translate_btn') else None))
                 self.after(0, lambda msg=err_text: self._maybe_prompt_invalid_key(msg))
 
         threading.Thread(target=task, daemon=True).start()
@@ -1367,7 +1513,7 @@ class App(_AppBase):
             f"Çevrildi — {result['source_language']} → {result['target_language']}"
         )
         self.text_panel.set_progress(1.0)
-        self.text_panel.translate_btn.configure(state="normal")
+        (self.text_panel.translate_btn.configure(state="normal") if hasattr(self.text_panel, 'translate_btn') else None)
         self.after(1200, lambda: self.text_panel.set_progress(0))
 
         add_history_entry(
@@ -1388,7 +1534,7 @@ class App(_AppBase):
         self._refresh_api_badge(busy=True)
         self.text_panel.set_status("⏳ Gemini ile özet çıkarılıyor…")
         self.text_panel.set_progress(0.5)
-        self.text_panel.summary_btn.configure(state="disabled")
+        (self.text_panel.summary_btn.configure(state="disabled") if hasattr(self.text_panel, 'summary_btn') else None)
 
         def task():
             try:
@@ -1403,7 +1549,7 @@ class App(_AppBase):
                 self.after(0, lambda: self.text_panel.set_progress(0))
             finally:
                 self.after(0, lambda: self._refresh_api_badge())
-                self.after(0, lambda: self.text_panel.summary_btn.configure(state="normal"))
+                self.after(0, lambda: (self.text_panel.summary_btn.configure(state="normal") if hasattr(self.text_panel, 'summary_btn') else None))
 
         threading.Thread(target=task, daemon=True).start()
 
@@ -1416,7 +1562,7 @@ class App(_AppBase):
         self._refresh_api_badge(busy=True)
         self.text_panel.set_status("⏳ İmla ve OCR hataları düzeltiliyor…")
         self.text_panel.set_progress(0.5)
-        self.text_panel.enhance_btn.configure(state="disabled")
+        (self.text_panel.enhance_btn.configure(state="disabled") if hasattr(self.text_panel, 'enhance_btn') else None)
 
         def task():
             try:
@@ -1431,7 +1577,7 @@ class App(_AppBase):
                 self.after(0, lambda: self.text_panel.set_progress(0))
             finally:
                 self.after(0, lambda: self._refresh_api_badge())
-                self.after(0, lambda: self.text_panel.enhance_btn.configure(state="normal"))
+                self.after(0, lambda: (self.text_panel.enhance_btn.configure(state="normal") if hasattr(self.text_panel, 'enhance_btn') else None))
 
         threading.Thread(target=task, daemon=True).start()
 

@@ -1,6 +1,6 @@
 """
 Çeviri Servisi.
-google-genai SDK (v1beta) ve otomatik yeniden deneme ile metinleri çevirir.
+google-genai SDK (v1beta) ve otomatik yeniden deneme ile metinleri anlam kayması olmadan çevirir.
 """
 
 from typing import Callable, Optional
@@ -16,9 +16,15 @@ def detect_and_translate(
     target_language: str = "Türkçe",
     on_retry: Optional[Callable[[float, int], None]] = None,
 ) -> dict:
-    """Metnin dilini tespit edip seçilen hedef dile çevirir."""
-    prompt = f"""Aşağıdaki metnin dilini tespit et ve {target_language} diline çevir.
-Yanıtını tam olarak şu formatta ver (başka hiçbir şey ekleme):
+    """Metnin dilini otomatik tespit edip seçilen hedef dile anlam bütünlüğünü koruyarak çevirir."""
+    prompt = f"""Aşağıdaki metnin kaynak dilini otomatik tespit et ve {target_language} diline çevir.
+
+Çeviri Kuralları:
+- Kelime kelime mekanik çeviri yapma; bağlamı, deyimleri, teknik terimleri ve anlatım tonunu koruyarak doğal, akıcı ve anlam kayması olmayan bir {target_language} metin üret.
+- Orijinal paragraf yapısını, madde işaretlerini ve sayısal verileri aynen koru; cümle ekleme veya çıkarma yapma.
+- Kaynak metin zaten {target_language} dilindeyse metni bozmadan olduğu gibi koru.
+
+Yanıtını tam olarak şu formatta ver (başka hiçbir açıklama ekleme):
 
 KAYNAK_DİL: [dil adı Türkçe olarak]
 ---

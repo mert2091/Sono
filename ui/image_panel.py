@@ -69,16 +69,21 @@ class ImagePanel(ctk.CTkFrame):
         master,
         on_image_loaded: Callable[[Image.Image], None],
         on_document_loaded: Optional[Callable[[str, str], None]] = None,
+        on_copy: Optional[Callable[[], None]] = None,
+        on_export_txt: Optional[Callable[[], None]] = None,
+        on_export_mp3: Optional[Callable[[], None]] = None,
         **kwargs,
     ):
         super().__init__(
             master,
-            corner_radius=RADIUS_CARD,
-            fg_color=CARD_BG,
-            border_width=1,
-            border_color=CARD_BORDER,
+            corner_radius=0,
+            fg_color="transparent",
+            border_width=0,
             **kwargs,
         )
+        self._on_copy_cb = on_copy
+        self._on_export_txt_cb = on_export_txt
+        self._on_export_mp3_cb = on_export_mp3
         self._on_image_loaded = on_image_loaded
         self._on_document_loaded = on_document_loaded
 
@@ -102,7 +107,7 @@ class ImagePanel(ctk.CTkFrame):
 
         title_lbl = ctk.CTkLabel(
             header_frame,
-            text="Belge",
+            text="Kaynak sayfa",
             font=ui_font(14, "semibold"),
             text_color=TEXT_MAIN,
             anchor="w",
@@ -316,8 +321,8 @@ class ImagePanel(ctk.CTkFrame):
 
         # ── 5. Görsel Yardımcı Araçları (Lucide ikonlu, çerçevesiz) ──
         tools_frame = ctk.CTkFrame(self, fg_color="transparent")
-        tools_frame.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
-        tools_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        tools_frame.grid(row=4, column=0, padx=PADDING_CARD, pady=(0, 8), sticky="ew")
+        tools_frame.grid_columnconfigure((0, 1), weight=1)
 
         self._rot_icon = get_icon("rotate-cw", size=14, color=TEXT_MUTED, stroke_width=1.5)
         self._crop_icon = get_icon("crop", size=14, color=TEXT_MUTED, stroke_width=1.5)
@@ -326,7 +331,7 @@ class ImagePanel(ctk.CTkFrame):
 
         self.rotate_btn = ctk.CTkButton(
             tools_frame,
-            text=" 90° döndür",
+            text=" Döndür",
             image=self._rot_icon,
             compound="left",
             command=self._rotate_current_image,
@@ -338,11 +343,11 @@ class ImagePanel(ctk.CTkFrame):
             corner_radius=8,
             state="disabled",
         )
-        self.rotate_btn.grid(row=0, column=0, padx=2, sticky="ew")
+        self.rotate_btn.grid(row=0, column=0, padx=(0, 4), pady=(0, 4), sticky="ew")
 
         self.crop_btn = ctk.CTkButton(
             tools_frame,
-            text=" Alan kırp",
+            text=" Kırp",
             image=self._crop_icon,
             compound="left",
             command=self._open_crop_window,
@@ -354,7 +359,7 @@ class ImagePanel(ctk.CTkFrame):
             corner_radius=8,
             state="disabled",
         )
-        self.crop_btn.grid(row=0, column=1, padx=2, sticky="ew")
+        self.crop_btn.grid(row=0, column=1, padx=(4, 0), pady=(0, 4), sticky="ew")
 
         self.remove_btn = ctk.CTkButton(
             tools_frame,
@@ -384,9 +389,119 @@ class ImagePanel(ctk.CTkFrame):
             corner_radius=8,
             state="disabled",
         )
-        self.rescan_btn.grid(row=0, column=2, padx=2, sticky="ew")
+        self.rescan_btn.grid(row=1, column=0, padx=(0, 4), sticky="ew")
 
-        self.remove_btn.grid(row=0, column=3, padx=2, sticky="ew")
+        self.remove_btn.grid(row=1, column=1, padx=(4, 0), sticky="ew")
+
+        # ── 6. 2x2 Belge İstatistik Kutusu ──
+        stats_box = ctk.CTkFrame(
+            self,
+            fg_color=CARD_BORDER,
+            corner_radius=RADIUS_INNER,
+            border_width=1,
+            border_color=CARD_BORDER,
+        )
+        stats_box.grid(row=5, column=0, padx=PADDING_CARD, pady=(0, 10), sticky="ew")
+        stats_box.grid_columnconfigure((0, 1), weight=1)
+
+        self._stat_vals: Dict[str, ctk.CTkLabel] = {}
+        stat_defs = [
+            ("words", "Kelime", "0", 0, 0),
+            ("read", "Okunan", "0", 0, 1),
+            ("duration", "Süre", "0:00", 1, 0),
+            ("lang", "Kaynak dil", "—", 1, 1),
+        ]
+        for key, lbl_txt, init_val, r_idx, c_idx in stat_defs:
+            cell = ctk.CTkFrame(stats_box, fg_color=CARD_BG, corner_radius=0)
+            cell.grid(
+                row=r_idx,
+                column=c_idx,
+                padx=(0 if c_idx == 0 else 1, 0),
+                pady=(0 if r_idx == 0 else 1, 0),
+                sticky="nsew",
+            )
+            ctk.CTkLabel(
+                cell, text=lbl_txt, font=ui_font(11), text_color=TEXT_SUBTLE, anchor="w"
+            ).pack(anchor="w", padx=12, pady=(8, 2))
+            val_lbl = ctk.CTkLabel(
+                cell, text=init_val, font=mono_font(14, "bold"), text_color=TEXT_MAIN, anchor="w"
+            )
+            val_lbl.pack(anchor="w", padx=12, pady=(0, 8))
+            self._stat_vals[key] = val_lbl
+
+        # ── 7. Alt Dışa Aktarma Butonları: [Kopyala] [TXT] [MP3] ──
+        exp_row = ctk.CTkFrame(self, fg_color="transparent")
+        exp_row.grid(row=6, column=0, padx=PADDING_CARD, pady=(0, PADDING_CARD), sticky="ew")
+        exp_row.grid_columnconfigure((0, 1, 2), weight=1)
+
+        self._ic_exp_copy = get_icon("copy", size=13, color=TEXT_MAIN, stroke_width=1.5)
+        self._ic_exp_dl = get_icon("download", size=13, color=TEXT_MAIN, stroke_width=1.5)
+
+        self.exp_copy_btn = ctk.CTkButton(
+            exp_row,
+            text=" Kopyala",
+            image=self._ic_exp_copy,
+            compound="left",
+            height=32,
+            font=ui_font(12, "semibold"),
+            fg_color="transparent",
+            border_width=1,
+            border_color=CARD_BORDER,
+            hover_color=SECONDARY_BTN_HOVER,
+            text_color=TEXT_MAIN,
+            corner_radius=RADIUS_BTN,
+            command=lambda: self._on_copy_cb() if self._on_copy_cb else None,
+        )
+        self.exp_copy_btn.grid(row=0, column=0, padx=(0, 4), sticky="ew")
+
+        self.exp_txt_btn = ctk.CTkButton(
+            exp_row,
+            text=" TXT",
+            image=self._ic_exp_dl,
+            compound="left",
+            height=32,
+            font=ui_font(12, "semibold"),
+            fg_color="transparent",
+            border_width=1,
+            border_color=CARD_BORDER,
+            hover_color=SECONDARY_BTN_HOVER,
+            text_color=TEXT_MAIN,
+            corner_radius=RADIUS_BTN,
+            command=lambda: self._on_export_txt_cb() if self._on_export_txt_cb else None,
+        )
+        self.exp_txt_btn.grid(row=0, column=1, padx=4, sticky="ew")
+
+        self.exp_mp3_btn = ctk.CTkButton(
+            exp_row,
+            text=" MP3",
+            image=self._ic_exp_dl,
+            compound="left",
+            height=32,
+            font=ui_font(12, "semibold"),
+            fg_color="transparent",
+            border_width=1,
+            border_color=CARD_BORDER,
+            hover_color=SECONDARY_BTN_HOVER,
+            text_color=TEXT_MAIN,
+            corner_radius=RADIUS_BTN,
+            command=lambda: self._on_export_mp3_cb() if self._on_export_mp3_cb else None,
+        )
+        self.exp_mp3_btn.grid(row=0, column=2, padx=(4, 0), sticky="ew")
+
+    def update_stats(
+        self,
+        words: int = 0,
+        read_words: int = 0,
+        duration_str: str = "0:00",
+        source_lang: str = "—",
+    ) -> None:
+        """Sağ paneldeki 2x2 belge istatistik kutusunu günceller."""
+        if not hasattr(self, "_stat_vals"):
+            return
+        self._stat_vals["words"].configure(text=f"{words:,}".replace(",", "."))
+        self._stat_vals["read"].configure(text=f"{read_words:,}".replace(",", "."))
+        self._stat_vals["duration"].configure(text=duration_str or "0:00")
+        self._stat_vals["lang"].configure(text=(source_lang or "—")[:12])
 
     # ── Canlı OCR Tarama Animasyonu Kontrolü ─────────────────────
 

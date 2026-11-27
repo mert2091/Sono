@@ -58,7 +58,7 @@ class AudioPanel(ctk.CTkFrame):
         ("2.0x", 2.0),
     ]
 
-    def __init__(self, master, tts_service: TTSService, on_stop=None, settings=None, **kwargs):
+    def __init__(self, master, tts_service: TTSService, on_stop=None, on_play_request=None, settings=None, **kwargs):
         super().__init__(
             master,
             corner_radius=RADIUS_CARD,
@@ -69,6 +69,8 @@ class AudioPanel(ctk.CTkFrame):
         )
         self.tts = tts_service
         self._on_stop_cb = on_stop
+        self._on_play_request_cb = on_play_request
+        self._has_text = False
         self.settings = settings
         self._is_seeking = False
         self._total_est_sec = 0
@@ -317,7 +319,19 @@ class AudioPanel(ctk.CTkFrame):
         if self.tts.is_playing or self.tts.is_paused:
             self._toggle_pause()
 
+    def set_has_text(self, has_text: bool) -> None:
+        self._has_text = bool(has_text)
+        if not (self.tts.is_playing or self.tts.is_paused):
+            self.pause_btn.configure(
+                image=self._ic_play,
+                state="normal" if self._has_text else "disabled",
+            )
+
     def _toggle_pause(self) -> None:
+        if not (self.tts.is_playing or self.tts.is_paused):
+            if self._on_play_request_cb:
+                self._on_play_request_cb()
+            return
         if self.tts.is_paused:
             self.tts.resume()
             self.pause_btn.configure(image=self._ic_pause)
@@ -329,7 +343,7 @@ class AudioPanel(ctk.CTkFrame):
 
     def _stop(self) -> None:
         self.tts.stop()
-        self.pause_btn.configure(image=self._ic_play, state="disabled")
+        self.pause_btn.configure(image=self._ic_play, state="normal" if self._has_text else "disabled")
         self.stop_btn.configure(state="disabled")
         self.prev_btn.configure(state="disabled")
         self.next_btn.configure(state="disabled")
